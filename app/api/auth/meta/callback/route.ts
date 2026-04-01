@@ -1,0 +1,89 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import {
+  exchangeCodeForToken,
+  getLongLivedToken,
+  calculateTokenExpiry,
+} from '@/lib/meta/oauth'
+import { getInstagramProfile } from '@/lib/meta/instagram'
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const code  = searchParams.get('code')
+  const state = searchParams.get('state')
+  const error = searchParams.get('error')
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+
+  // Erro de autorização do usuário (ex: clicou em "Cancelar")
+  if (error) {
+    console.warn('[OAuth Callback] Usuário negou autorização:', error)
+    return NextResponse.redirect(`${appUrl}/conexao?error=cancelled`)
+  }
+
+  if (!code || !state) {
+    return NextResponse.redirect(`${appUrl}/conexao?error=invalid_callback`)
+  }
+
+  // Verificar state CSRF
+  const storedState = request.cookies.get('meta_oauth_state')?.value
+  if (!storedState || storedState !== state) {
+    console.error('[OAuth Callback] State CSRF inválido')
+    return NextResponse.redirect(`${appUrl}/conexao?error=csrf_failed`)
+  }
+
+  // Verificar usuário autenticado
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.redirect(`${appUrl}/login`)
+  }
+
+  // Trocar code por token de curta duração
+  const shortToken = await exchangeCodeForToken(code)
+  if (!shortToken) {
+    return NextResponse.redirect(`${appUrl}/conexao?error=token_exchange_failed`)
+  }
+
+  // Converter para token de longa duração (60 dias)
+  const longToken = await getLongLivedToken(shortToken.access_token)
+  if (!longToken) {
+    return NextResponse.redirect(`${appUrl}/conexao?error=long_token_failed`)
+  }
+
+  // Buscar perfil do Instagram
+  const profile = await getInstagramProfile(longToken.access_token)
+  if (!profile) {
+    return NextResponse.redirect(`${appUrl}/conexao?error=profile_failed`)
+  }
+
+  // Salvar/atualizar conta no banco usando service role
+  const { encryptToken } = await import('@/lib/crypto/tokens')
+  const serviceClient = createServiceClient()
+  const { error: dbError } = await serviceClient
+    .from('accounts')
+    .upsert(
+      {
+        user_id: user.id,
+        instagram_user_id: profile.id,
+        instagram_username: profile.username,
+        instagram_name: profile.name,
+        instagram_pic_url: profile.profile_picture_url ?? null,
+        access_token: encryptToken(longToken.access_token),
+        token_expires_at: calculateTokenExpiry(longToken.expires_in).toISOString(),
+        is_active: true,
+      },
+      { onConflict: 'instagram_user_id' }
+    )
+
+  if (dbError) {
+    console.error('[OAuth Callback] Falha ao salvar conta', dbError)
+    return NextResponse.redirect(`${appUrl}/conexao?error=db_failed`)
+  }
+
+  // Limpar cookie de state e redirecionar com sucesso
+  const response = NextResponse.redirect(`${appUrl}/conexao?success=true`)
+  response.cookies.delete('meta_oauth_state')
+
+  return response
+}

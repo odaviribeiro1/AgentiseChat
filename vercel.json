@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/broadcast",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/token-refresh",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
