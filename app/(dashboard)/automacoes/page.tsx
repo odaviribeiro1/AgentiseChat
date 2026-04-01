@@ -4,10 +4,13 @@ import { Plus, Workflow, Power, PowerOff } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+import { AutomationActions } from '@/components/automations/AutomationActions'
+import { createAutomation } from '@/app/actions/automations'
+
 export default async function AutomationsPage() {
   const supabase = createServiceClient()
-
-  // Buscar conta
+  
+  // ... (rest of account fetching)
   const { data: accounts } = await supabase.from('accounts').select('*').limit(1)
   const accountId = accounts?.[0]?.id
 
@@ -19,38 +22,7 @@ export default async function AutomationsPage() {
     .eq('account_id', accountId)
     .order('created_at', { ascending: false })
 
-  // Server Action inline para criar nova automação rápida
-  async function createAutomation(formData: FormData) {
-    'use server'
-    const name = formData.get('name') as string
-    const db = createServiceClient()
-    
-    // Inserir base
-    const { data, error } = await db.from('automations').insert({
-      account_id: accountId as string,
-      name,
-      status: 'draft',
-      trigger_type: 'comment_keyword',
-      trigger_config: {
-        keywords: [], 
-        match_type: 'contains', 
-        post_id: null, 
-        apply_to: 'all_posts',
-        max_triggers_per_user_hours: 24,
-        reply_comment: false,
-        reply_comment_text: null
-      }
-    }).select('id').single()
-
-    if (error) {
-      console.error(error)
-      throw new Error('Falha ao criar automação')
-    }
-
-    if (data?.id) {
-      redirect(`/automacoes/${data.id}/editar`)
-    }
-  }
+  // ... (skip createAutomation since it's above)
 
   return (
     <div className="p-8 -m-8 space-y-8">
@@ -91,28 +63,35 @@ export default async function AutomationsPage() {
           </div>
         ) : (
           automations.map(auto => (
-            <Link 
-              href={`/automacoes/${auto.id}/editar`} 
-              key={auto.id}
-              className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 hover:shadow-md hover:border-[#2B7FFF] transition-all group flex flex-col h-40 relative overflow-hidden"
-            >
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-2">
+            <div key={auto.id} className="relative group">
+              {/* Menu de Ações (Flutuante) */}
+              <AutomationActions 
+                id={auto.id} 
+                name={auto.name} 
+                status={auto.status} 
+              />
+
+              <Link 
+                href={`/automacoes/${auto.id}/editar`} 
+                className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 hover:shadow-md hover:border-[#2B7FFF] transition-all flex flex-col h-40 overflow-hidden"
+              >
+                <div className="flex-1 pr-12">
                   <h3 className="font-bold text-[#1A202C] text-lg leading-tight line-clamp-2">
                     {auto.name}
                   </h3>
-                  <div className={`p-1.5 rounded-lg ${auto.status === 'active' ? 'bg-[#DEF7EC] text-[#03543F]' : 'bg-[#FFF5F5] text-[#E53E3E]'}`}>
-                    {auto.status === 'active' ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className={`w-2 h-2 rounded-full ${auto.status === 'active' ? 'bg-[#31C48D]' : 'bg-[#F05252]'}`} />
+                    <p className="text-xs font-semibold text-[#A0AEC0] uppercase tracking-wider">
+                      {auto.status === 'active' ? 'Ligado' : auto.status === 'paused' ? 'Pausado' : 'Rascunho'}
+                    </p>
                   </div>
                 </div>
-                <p className="text-xs font-semibold text-[#A0AEC0] uppercase tracking-wider">
-                  Status: {auto.status === 'active' ? 'Ligado' : auto.status === 'paused' ? 'Pausado' : 'Rascunho'}
-                </p>
-              </div>
-              <div className="mt-auto pt-4 flex items-center justify-between text-sm border-t border-[#E2E8F0]">
-                <span className="text-[#718096]">Clique para abrir o Builder &rarr;</span>
-              </div>
-            </Link>
+                <div className="mt-auto pt-4 flex items-center justify-between text-xs text-[#718096] border-t border-[#E2E8F0]">
+                  <span>Ver Fluxo &rarr;</span>
+                  <span>{new Date(auto.created_at!).toLocaleDateString('pt-BR')}</span>
+                </div>
+              </Link>
+            </div>
           ))
         )}
       </div>
