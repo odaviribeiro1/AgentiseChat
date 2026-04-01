@@ -5,7 +5,7 @@ import {
   getLongLivedToken,
   calculateTokenExpiry,
 } from '@/lib/meta/oauth'
-import { getInstagramProfile } from '@/lib/meta/instagram'
+import { getInstagramProfile, getUserPages, subscribeAppToPage } from '@/lib/meta/instagram'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -71,6 +71,23 @@ export async function GET(request: NextRequest) {
 
   console.log(`[OAuth Callback] Perfil encontrado: @${profile.username} (ID: ${profile.id})`)
 
+  // 1. Tentar inscrever o app nos webhooks da página vinculada
+  console.log('[OAuth Callback] Buscando páginas para inscrição de webhooks...')
+  const pages = await getUserPages(longToken.access_token)
+  const linkedPage = pages.find(p => p.instagram_business_account?.id === profile.id)
+  
+  let webhookVerifiedAt: string | null = null
+  
+  if (linkedPage) {
+    console.log(`[OAuth Callback] Página vinculada encontrada: ${linkedPage.name} (${linkedPage.id})`)
+    const subscribed = await subscribeAppToPage(linkedPage.id, linkedPage.access_token)
+    if (subscribed) {
+      webhookVerifiedAt = new Date().toISOString()
+    }
+  } else {
+    console.warn('[OAuth Callback] Nenhuma página vinculada encontrada para este Instagram. Webhooks podem não funcionar.')
+  }
+
   // Salvar/atualizar conta no banco usando service role
   const { encryptToken } = await import('@/lib/crypto/tokens')
   const serviceClient = createServiceClient()
@@ -85,6 +102,7 @@ export async function GET(request: NextRequest) {
         instagram_pic_url: profile.profile_picture_url ?? null,
         access_token: encryptToken(longToken.access_token),
         token_expires_at: calculateTokenExpiry(longToken.expires_in).toISOString(),
+        webhook_verified_at: webhookVerifiedAt,
         is_active: true,
       },
       { onConflict: 'instagram_user_id' }

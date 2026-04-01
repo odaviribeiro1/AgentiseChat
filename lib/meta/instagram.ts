@@ -121,6 +121,65 @@ export async function getInstagramPosts(
   }
 }
 
+export interface PageAccount {
+  id: string
+  name: string
+  access_token: string
+  instagram_business_account?: {
+    id: string
+  }
+}
+
+/**
+ * Busca todas as páginas do Facebook do usuário e seus respectivos tokens.
+ */
+export async function getUserPages(accessToken: string): Promise<PageAccount[]> {
+  const { data, error } = await graphApi<{ data: PageAccount[] }>(
+    'me/accounts?fields=id,name,access_token,instagram_business_account',
+    { accessToken }
+  )
+
+  if (error || !data) {
+    console.error('[Instagram] Falha ao buscar páginas do usuário', error)
+    return []
+  }
+
+  return data.data || []
+}
+
+/**
+ * Inscreve o App para receber webhooks de uma página específica.
+ * Essencial para que o Meta envie eventos de mensagens e comentários.
+ */
+export async function subscribeAppToPage(pageId: string, pageAccessToken: string): Promise<boolean> {
+  console.log(`[Instagram] Inscrevendo App na página ${pageId}...`)
+  
+  const { data, error } = await graphApi<{ success: boolean }>(
+    `${pageId}/subscribed_apps`,
+    {
+      method: 'POST',
+      accessToken: pageAccessToken,
+      body: {
+        subscribed_fields: [
+          'messages',
+          'messaging_postbacks',
+          'comments',
+          'message_deliveries',
+          'message_reads'
+        ].join(',')
+      }
+    }
+  )
+
+  if (error || !data?.success) {
+    console.error(`[Instagram] Falha ao inscrever App na página ${pageId}`, error)
+    return false
+  }
+
+  console.log(`[Instagram] App inscrito com sucesso na página ${pageId}`)
+  return true
+}
+
 /**
  * Verifica se o token ainda é válido consultando a API.
  * Retorna true se válido, false se expirado ou inválido.
