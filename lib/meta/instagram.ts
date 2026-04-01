@@ -84,7 +84,7 @@ export async function getInstagramPosts(
   instagramUserId: string,
   accessToken: string,
   limit = 20
-): Promise<InstagramPost[]> {
+): Promise<{ posts: InstagramPost[]; error: string | null }> {
   const fields = 'id,caption,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp,like_count,comments_count'
 
   console.log(`[Instagram] Buscando mídias para ID ${instagramUserId}...`)
@@ -97,9 +97,10 @@ export async function getInstagramPosts(
 
   if (mediaError) {
     console.error('[Instagram] Falha ao buscar media (feed)', mediaError)
+    return { posts: [], error: mediaError }
   }
 
-  // 2. Buscar Stories ativos
+  // 2. Buscar Stories ativos (falha não-fatal — stories podem estar vazios)
   const { data: storiesData, error: storiesError } = await graphApi<{ data: InstagramPost[] }>(
     `${instagramUserId}/stories?fields=${fields}&limit=10`,
     { accessToken }
@@ -112,9 +113,12 @@ export async function getInstagramPosts(
   const allMedia = [...(mediaData?.data || []), ...(storiesData?.data || [])]
 
   // Ordenar por data (mais recente primeiro)
-  return allMedia.sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  )
+  return {
+    posts: allMedia.sort((a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    ),
+    error: null,
+  }
 }
 
 /**

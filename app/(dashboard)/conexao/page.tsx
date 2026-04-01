@@ -21,7 +21,7 @@ export default async function ConexaoPage({ searchParams }: ConexaoPageProps) {
     .maybeSingle()
 
   return (
-    <div className="px-8 py-8 max-w-3xl">
+    <div className="max-w-3xl">
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1A202C]">Conexão Instagram</h1>

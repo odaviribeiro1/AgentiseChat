@@ -1,15 +1,17 @@
 import { graphApi } from './client'
 import type { MetaSendMessageResponse } from './types'
 
-const MESSAGES_ENDPOINT = 'me/messages'
+const messagesEndpoint = (senderIgId?: string) =>
+  senderIgId ? `${senderIgId}/messages` : 'me/messages'
 
 // ─── Texto simples ────────────────────────────────────────────────────────────
 export async function sendTextMessage(
   recipientIgId: string,
   text: string,
-  accessToken?: string
+  accessToken?: string,
+  senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
-  const { data, error } = await graphApi<MetaSendMessageResponse>(MESSAGES_ENDPOINT, {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(messagesEndpoint(senderIgId), {
     method: 'POST',
     body: {
       recipient: { id: recipientIgId },
@@ -31,11 +33,12 @@ export async function sendImageMessage(
   recipientIgId: string,
   imageUrl: string,
   caption?: string,
-  accessToken?: string
+  accessToken?: string,
+  senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
   // Enviar imagem primeiro
   const { data: imgData, error: imgError } = await graphApi<MetaSendMessageResponse>(
-    MESSAGES_ENDPOINT,
+    messagesEndpoint(senderIgId),
     {
       method: 'POST',
       body: {
@@ -58,7 +61,7 @@ export async function sendImageMessage(
 
   // Enviar legenda como texto separado se existir
   if (caption) {
-    await sendTextMessage(recipientIgId, caption, accessToken)
+    await sendTextMessage(recipientIgId, caption, accessToken, senderIgId)
   }
 
   return imgData
@@ -69,14 +72,15 @@ export async function sendQuickReplies(
   recipientIgId: string,
   text: string,
   buttons: Array<{ title: string; payload: string }>,
-  accessToken?: string
+  accessToken?: string,
+  senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
   if (buttons.length > 13) {
     console.warn('[Messages] Quick Replies limitado a 13 botões pela Meta API')
     buttons = buttons.slice(0, 13)
   }
 
-  const { data, error } = await graphApi<MetaSendMessageResponse>(MESSAGES_ENDPOINT, {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(messagesEndpoint(senderIgId), {
     method: 'POST',
     accessToken,
     body: {
@@ -106,9 +110,10 @@ export async function sendCtaButton(
   text: string,
   buttonTitle: string,
   url: string,
-  accessToken?: string
+  accessToken?: string,
+  senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
-  const { data, error } = await graphApi<MetaSendMessageResponse>(MESSAGES_ENDPOINT, {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(messagesEndpoint(senderIgId), {
     method: 'POST',
     accessToken,
     body: {

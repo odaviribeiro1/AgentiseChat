@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen bg-[#F0F2F5] overflow-hidden">
       <Sidebar user={user} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto p-8">
         {children}
       </main>
       <Toaster position="bottom-right" richColors />

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getInstagramPosts } from '@/lib/meta/instagram'
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
@@ -21,29 +20,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Nenhuma conta conectada' }, { status: 404 })
   }
 
-  try {
-    console.log('[API Posts] Iniciando busca para ID:', account.instagram_user_id)
-    
-    const { decryptToken } = await import('@/lib/crypto/tokens')
-    const decryptedToken = decryptToken(account.access_token)
+  const { decryptToken } = await import('@/lib/crypto/tokens')
+  const decryptedToken = decryptToken(account.access_token)
 
-    const { getInstagramPosts } = await import('@/lib/meta/instagram')
-    const posts = await getInstagramPosts(
-      account.instagram_user_id,
-      decryptedToken
+  // Validar token antes de chamadas caras
+  const { validateToken, getInstagramPosts } = await import('@/lib/meta/instagram')
+  const isValid = await validateToken(decryptedToken)
+  if (!isValid) {
+    return NextResponse.json(
+      { error: 'Token do Instagram inválido ou expirado. Reconecte sua conta em Configurações → Conexão.' },
+      { status: 401 }
     )
-
-    if (posts.length === 0) {
-      console.warn('[API Posts] Nenhum post ou story encontrado. Verificando token...')
-    }
-
-    return NextResponse.json({ posts })
-  } catch (err: any) {
-    console.error('[API Posts] Erro crítico:', err)
-    return NextResponse.json({ 
-      error: 'Erro ao buscar mídias', 
-      details: err.message,
-      metaError: err.metaError || null
-    }, { status: 500 })
   }
+
+  console.log('[API Posts] Iniciando busca para ID:', account.instagram_user_id)
+
+  const { posts, error } = await getInstagramPosts(account.instagram_user_id, decryptedToken)
+
+  if (error) {
+    console.error('[API Posts] Erro ao buscar mídias:', error)
+    return NextResponse.json(
+      { error: `Erro ao buscar mídias do Instagram: ${error}` },
+      { status: 502 }
+    )
+  }
+
+  return NextResponse.json({ posts })
 }

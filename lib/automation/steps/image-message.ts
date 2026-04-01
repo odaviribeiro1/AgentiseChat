@@ -17,7 +17,8 @@ export async function executeImageMessageStep(
     ctx.contact.instagram_user_id,
     config.image_url,
     caption,
-    ctx.account.access_token
+    ctx.account.access_token,
+    ctx.account.instagram_user_id
   )
 
   if (!result) {

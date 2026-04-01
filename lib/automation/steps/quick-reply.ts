@@ -15,7 +15,8 @@ export async function executeQuickReplyStep(
     ctx.contact.instagram_user_id,
     text,
     config.buttons,
-    ctx.account.access_token
+    ctx.account.access_token,
+    ctx.account.instagram_user_id
   )
 
   if (!result) {
