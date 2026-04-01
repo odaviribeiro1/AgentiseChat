@@ -42,6 +42,8 @@ export function buildOAuthUrl(state: string): string {
   // Facebook Login for Business exige config_id e ignora o parâmetro scope manual
   if (configId) {
     params.append('config_id', configId)
+    // Recomendado para retornar o code corretamente em fluxos Business
+    params.append('override_default_response_type', 'true')
   } else {
     params.append('scope', REQUIRED_SCOPES)
   }

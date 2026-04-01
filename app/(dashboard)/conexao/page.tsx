@@ -70,6 +70,8 @@ function getErrorMessage(error: string): string {
     long_token_failed:     'Falha ao obter token de longa duração',
     profile_failed:        'Falha ao buscar perfil do Instagram',
     db_failed:             'Falha ao salvar conta no banco de dados',
+    access_denied:         'Acesso negado. Verifique se você é um testador aprovado do app.',
   }
-  return messages[error] ?? 'Erro desconhecido'
+  
+  return messages[error] ?? `Erro de autorização: ${error}`
 }

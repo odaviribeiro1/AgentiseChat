@@ -12,13 +12,18 @@ export async function GET(request: NextRequest) {
   const code  = searchParams.get('code')
   const state = searchParams.get('state')
   const error = searchParams.get('error')
+  const errorDescription = searchParams.get('error_description')
+  const errorReason = searchParams.get('error_reason')
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
-  // Erro de autorização do usuário (ex: clicou em "Cancelar")
+  // Erro de autorização do usuário (ex: clicou em "Cancelar" ou erro de permissão)
   if (error) {
-    console.warn('[OAuth Callback] Usuário negou autorização:', error)
-    return NextResponse.redirect(`${appUrl}/conexao?error=cancelled`)
+    console.warn('[OAuth Callback] Erro na autorização:', { error, errorDescription, errorReason })
+    
+    // Se for um erro do sistema (não cancelamento manual), passar o motivo
+    const errorParam = error === 'access_denied' && !errorReason ? 'cancelled' : error
+    return NextResponse.redirect(`${appUrl}/conexao?error=${errorParam}`)
   }
 
   if (!code || !state) {
