@@ -49,18 +49,18 @@ const columns = [
       return (
         <div className="flex items-center gap-2">
           {inWindow ? (
-            <>
-              <div className="relative flex h-3 w-3">
+            <div className="px-2.5 py-1 bg-[#DEF7EC] text-[#03543F] rounded-full flex items-center gap-1.5 border border-[#31C48D]/20">
+              <div className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </div>
-              <span className="text-xs font-semibold text-[#03543F]">Ativa</span>
-            </>
+              <span className="text-[10px] font-bold uppercase tracking-tight">Dentro da Janela</span>
+            </div>
           ) : (
-            <>
-              <div className="h-3 w-3 rounded-full bg-[#CBD5E0]"></div>
-              <span className="text-xs font-medium text-[#718096]">Inativa</span>
-            </>
+            <div className="px-2.5 py-1 bg-[#F3F4F6] text-[#718096] rounded-full flex items-center gap-1.5 border border-[#E2E8F0]">
+              <div className="h-2 w-2 rounded-full bg-[#CBD5E0]"></div>
+              <span className="text-[10px] font-bold uppercase tracking-tight text-[#94A3B8]">Janela Fechada</span>
+            </div>
           )}
         </div>
       )

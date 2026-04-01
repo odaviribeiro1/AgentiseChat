@@ -21,9 +21,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Nenhuma conta conectada' }, { status: 404 })
   }
 
+  const { decryptToken } = await import('@/lib/crypto/tokens')
+  const decryptedToken = decryptToken(account.access_token)
+
   const posts = await getInstagramPosts(
     account.instagram_user_id,
-    account.access_token
+    decryptedToken
   )
 
   return NextResponse.json({ posts })
