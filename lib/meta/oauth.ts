@@ -35,14 +35,15 @@ export function buildOAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: redirectUri,
-    scope: REQUIRED_SCOPES,
     response_type: 'code',
     state,                          // CSRF protection
   })
 
-  // Facebook Login for Business exige config_id
+  // Facebook Login for Business exige config_id e ignora o parâmetro scope manual
   if (configId) {
     params.append('config_id', configId)
+  } else {
+    params.append('scope', REQUIRED_SCOPES)
   }
 
   const url = `${OAUTH_BASE}?${params.toString()}`
