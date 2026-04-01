@@ -16,14 +16,21 @@ const REQUIRED_SCOPES = [
  * O usuário é redirecionado para esta URL para autorizar o app.
  */
 export function buildOAuthUrl(state: string): string {
+  const appId = process.env.META_APP_ID
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const redirectUri = process.env.META_REDIRECT_URI || `${appUrl}/api/auth/meta/callback`
+
   const params = new URLSearchParams({
-    client_id: process.env.META_APP_ID!,
-    redirect_uri: process.env.META_REDIRECT_URI!,
+    client_id: appId!,
+    redirect_uri: redirectUri,
     scope: REQUIRED_SCOPES,
     response_type: 'code',
     state,                          // CSRF protection
   })
-  return `${OAUTH_BASE}?${params.toString()}`
+
+  const url = `${OAUTH_BASE}?${params.toString()}`
+  console.log('[OAuth] Gerando URL de autorização:', url)
+  return url
 }
 
 /**
