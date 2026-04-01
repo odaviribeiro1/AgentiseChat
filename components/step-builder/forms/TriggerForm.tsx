@@ -38,13 +38,13 @@ export function TriggerForm({ initialConfig, onChange }: TriggerFormProps) {
 
   const addKeyword = () => {
     if (!keywordInput.trim()) return
-    const newKeywords = [...initialConfig.keywords, keywordInput.trim()]
+    const newKeywords = [...(initialConfig.keywords || []), keywordInput.trim()]
     onChange({ ...initialConfig, keywords: newKeywords })
     setKeywordInput('')
   }
 
   const removeKeyword = (index: number) => {
-    const newKeywords = initialConfig.keywords.filter((_, i) => i !== index)
+    const newKeywords = (initialConfig.keywords || []).filter((_, i) => i !== index)
     onChange({ ...initialConfig, keywords: newKeywords })
   }
 
@@ -101,13 +101,13 @@ export function TriggerForm({ initialConfig, onChange }: TriggerFormProps) {
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {initialConfig.keywords.map((kw, i) => (
+            {(initialConfig.keywords || []).map((kw, i) => (
               <span key={i} className="px-2 py-1 bg-[#EBF3FF] text-[#2B7FFF] text-xs font-bold rounded-md flex items-center gap-1.5 border border-[#2B7FFF]/10">
                 {kw}
                 <button onClick={() => removeKeyword(i)} className="hover:text-red-500 font-normal">×</button>
               </span>
             ))}
-            {initialConfig.keywords.length === 0 && (
+            {(initialConfig.keywords || []).length === 0 && (
               <p className="text-[11px] text-[#A0AEC0]">Insira as palavras que o robô deve identificar nos comentários.</p>
             )}
           </div>

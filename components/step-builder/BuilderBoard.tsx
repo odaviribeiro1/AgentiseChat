@@ -34,12 +34,14 @@ import { toast } from 'sonner'
 interface BuilderBoardProps {
   automationId: string
   initialSteps: StepLocal[]
+  initialTriggerType?: string
+  initialTriggerConfig?: any
 }
 
 import { TriggerForm } from './forms/TriggerForm'
 import { Hash } from 'lucide-react'
 
-export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) {
+export function BuilderBoard({ automationId, initialSteps, initialTriggerType, initialTriggerConfig }: BuilderBoardProps) {
   const { 
     steps, setSteps, reorderSteps, addStep, 
     setAutomationId, selectedStepId, updateStepConfig,
@@ -51,11 +53,16 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
   const isTriggerSelected = selectedStepId === 'trigger'
 
   useEffect(() => {
-    setIsMounted(true)
-    setAutomationId(automationId, 'comment_keyword', initialSteps[0]?.automation_id ? initialSteps[0] : undefined) 
-    // Note: Em uma implementação real, o trigger viria do objeto automation pai.
+    selectStep(null)
+    setAutomationId(
+      automationId,
+      initialTriggerType || 'comment_keyword',
+      initialTriggerConfig || undefined
+    )
     setSteps(initialSteps)
-  }, [automationId, initialSteps, setAutomationId, setSteps])
+    setIsMounted(true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [automationId])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

@@ -71,7 +71,12 @@ export default async function StepBuilderPage({
       {/* Workspace de duas colunas principais */}
       <div className="flex gap-8 flex-1">
         {/* Board Principal (DND e Forms) */}
-        <BuilderBoard automationId={id} initialSteps={initialSteps} />
+        <BuilderBoard
+          automationId={id}
+          initialSteps={initialSteps}
+          initialTriggerType={automation.trigger_type}
+          initialTriggerConfig={automation.trigger_config as any}
+        />
 
         {/* Simulador (Preview) */}
         <div className="w-[350px] flex-shrink-0 border-l border-[#E2E8F0] pl-8">

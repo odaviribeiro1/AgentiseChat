@@ -45,10 +45,10 @@ export async function executeAutomationRun(
 
     // Registrar mensagem enviada no log
     if (result.metaMessageId) {
-      const msgType = step.type === 'quick_reply'    ? 'quick_reply'
-                    : step.type === 'cta_button'     ? 'cta_button'
-                    : step.type === 'image_message'  ? 'image'
-                    : 'text'
+      const msgType = step.type === 'quick_reply' ? 'quick_reply'
+        : step.type === 'cta_button' ? 'cta_button'
+          : step.type === 'image_message' ? 'image'
+            : 'text'
 
       await supabase.from('messages').insert({
         account_id: fullCtx.account.id,
@@ -155,7 +155,7 @@ export async function resumeAutomationRun(
   }
 
   // Tenta bater a resposta com o branch_value
-  const nextStep = childSteps.find(s => 
+  const nextStep = childSteps.find(s =>
     s.branch_value && s.branch_value.toLowerCase() === payloadOrText.toLowerCase()
   )
 
@@ -175,7 +175,7 @@ export async function resumeAutomationRun(
 
   // Retomando no branch encontrado
   await updateRunStatus(run.id, 'running')
-  
+
   // Fire and forget
   executeAutomationRun(run.id, nextStep.id, {
     account,
