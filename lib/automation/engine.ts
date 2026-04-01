@@ -181,11 +181,13 @@ async function evaluateAndRun(
 
 /**
  * Avalia se o texto do comentário corresponde às keywords do trigger.
+ * Se o match_type for 'any', retorna true para qualquer conteúdo.
  */
 export function matchesKeyword(comment: string, config: TriggerConfig): boolean {
+  if (config.match_type === 'any') return true
   if (!config.keywords?.length) return false
 
-  const text = comment.toLowerCase().trim()
+  const text = (comment || '').toLowerCase().trim()
   return config.keywords.some(kw => {
     const keyword = kw.toLowerCase().trim()
     return config.match_type === 'exact'

@@ -7,6 +7,7 @@ import { RefreshCw, Hash, Image as ImageIcon, CheckCircle2 } from 'lucide-react'
 interface TriggerFormProps {
   initialConfig: {
     keywords: string[]
+    match_type: 'contains' | 'exact' | 'any'
     apply_to: 'all_posts' | 'specific_post'
     post_id: string | null
   }
@@ -49,40 +50,78 @@ export function TriggerForm({ initialConfig, onChange }: TriggerFormProps) {
 
   return (
     <div className="space-y-6">
-      {/* Seção de Palavras-Chave */}
-      <div>
-        <label className="block text-sm font-semibold text-[#1A202C] mb-2 flex items-center gap-2">
-          <Hash className="w-4 h-4 text-[#2B7FFF]" />
-          Palavras-Chave de Comentário
-        </label>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="text"
-            value={keywordInput}
-            onChange={(e) => setKeywordInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
-            placeholder="Ex: QUERO, INFO..."
-            className="flex-1 px-3 py-2 text-sm bg-[#F8F9FB] border border-[#E2E8F0] rounded-lg focus:ring-2 focus:ring-[#2B7FFF]/20 outline-none"
-          />
+      {/* Seletor de Modo de Gatilho */}
+      <div className="p-4 bg-[#F8F9FB] rounded-xl border border-[#E2E8F0]">
+        <label className="block text-sm font-semibold text-[#1A202C] mb-3">Como o robô deve disparar?</label>
+        <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={addKeyword}
-            className="px-4 py-2 bg-[#F0F2F5] text-[#4A5568] hover:bg-[#E2E8F0] rounded-lg text-sm font-bold transition-colors"
+            onClick={() => onChange({ ...initialConfig, match_type: 'contains' })}
+            className={`px-3 py-2 text-xs font-bold rounded-lg border-2 transition-all ${
+              initialConfig.match_type !== 'any' 
+                ? 'bg-white border-[#2B7FFF] text-[#2B7FFF]' 
+                : 'bg-transparent border-transparent text-[#718096] hover:bg-white/50'
+            }`}
           >
-            Adicionar
+            Palavras-Chave
+          </button>
+          <button
+            onClick={() => onChange({ ...initialConfig, match_type: 'any' })}
+            className={`px-3 py-2 text-xs font-bold rounded-lg border-2 transition-all ${
+              initialConfig.match_type === 'any' 
+                ? 'bg-white border-[#2B7FFF] text-[#2B7FFF]' 
+                : 'bg-transparent border-transparent text-[#718096] hover:bg-white/50'
+            }`}
+          >
+            Qualquer Interação
           </button>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {initialConfig.keywords.map((kw, i) => (
-            <span key={i} className="px-2 py-1 bg-[#EBF3FF] text-[#2B7FFF] text-xs font-bold rounded-md flex items-center gap-1.5 border border-[#2B7FFF]/10">
-              {kw}
-              <button onClick={() => removeKeyword(i)} className="hover:text-red-500 font-normal">×</button>
-            </span>
-          ))}
-          {initialConfig.keywords.length === 0 && (
-            <p className="text-[11px] text-[#A0AEC0]">Insira as palavras que o robô deve identificar nos comentários.</p>
-          )}
-        </div>
       </div>
+
+      {/* Seção de Palavras-Chave (Condicional) */}
+      {initialConfig.match_type !== 'any' && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <label className="block text-sm font-semibold text-[#1A202C] mb-2 flex items-center gap-2">
+            <Hash className="w-4 h-4 text-[#2B7FFF]" />
+            Palavras-Chave de Comentário
+          </label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
+              placeholder="Ex: QUERO, INFO..."
+              className="flex-1 px-3 py-2 text-sm bg-[#F8F9FB] border border-[#E2E8F0] rounded-lg focus:ring-2 focus:ring-[#2B7FFF]/20 outline-none"
+            />
+            <button
+              onClick={addKeyword}
+              className="px-4 py-2 bg-[#F0F2F5] text-[#4A5568] hover:bg-[#E2E8F0] rounded-lg text-sm font-bold transition-colors"
+            >
+              Adicionar
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {initialConfig.keywords.map((kw, i) => (
+              <span key={i} className="px-2 py-1 bg-[#EBF3FF] text-[#2B7FFF] text-xs font-bold rounded-md flex items-center gap-1.5 border border-[#2B7FFF]/10">
+                {kw}
+                <button onClick={() => removeKeyword(i)} className="hover:text-red-500 font-normal">×</button>
+              </span>
+            ))}
+            {initialConfig.keywords.length === 0 && (
+              <p className="text-[11px] text-[#A0AEC0]">Insira as palavras que o robô deve identificar nos comentários.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback para Modo 'Any' */}
+      {initialConfig.match_type === 'any' && (
+        <div className="p-4 bg-green-50 border border-green-100 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+           <p className="text-xs text-green-700 leading-relaxed font-medium">
+             ✨ <strong>Modo Gatilho Universal Ativado:</strong> O robô responderá a qualquer comentário ou reação no post/story selecionado abaixo.
+           </p>
+        </div>
+      )}
 
       {/* Seção de Seleção de Post */}
       <div>
@@ -112,13 +151,21 @@ export function TriggerForm({ initialConfig, onChange }: TriggerFormProps) {
                   alt={post.caption || 'Post'}
                   className="w-full h-full object-cover"
                 />
+                {/* Badge tipo */}
+                <span className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-[8px] font-bold text-white shadow-sm z-10 ${
+                  post.media_product_type === 'STORY' ? 'bg-gradient-to-tr from-[#F9ED32] via-[#EE2A7B] to-[#D22A8A]' :
+                  post.media_product_type === 'REEL' ? 'bg-[#833AB4]' : 'bg-[#2B7FFF]'
+                }`}>
+                  {post.media_product_type}
+                </span>
+
                 {isSelected && (
-                  <div className="absolute top-2 right-2 text-[#2Primary]">
+                  <div className="absolute top-2 right-2 z-10 shadow-sm border-2 border-white rounded-full">
                     <CheckCircle2 className="w-5 h-5 text-[#2B7FFF] fill-white" />
                   </div>
                 )}
-                <div className="absolute bottom-0 inset-x-0 p-1.5 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-[9px] text-white truncate leading-tight">{post.caption || 'Sem legenda'}</p>
+                <div className="absolute bottom-0 inset-x-0 p-1.5 bg-gradient-to-t from-black/80 to-transparent z-0">
+                  <p className="text-[9px] text-white truncate leading-tight font-medium">{post.caption || 'Sem legenda'}</p>
                 </div>
               </button>
             )

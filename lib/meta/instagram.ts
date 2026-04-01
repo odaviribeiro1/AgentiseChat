@@ -77,7 +77,7 @@ export async function getInstagramProfile(
 }
 
 /**
- * Busca os posts e reels mais recentes da conta.
+ * Busca os posts e reels mais recentes da conta, além de stories ativos.
  * Usado para selecionar o post no trigger da automação.
  */
 export async function getInstagramPosts(
@@ -87,19 +87,33 @@ export async function getInstagramPosts(
 ): Promise<InstagramPost[]> {
   const fields = 'id,caption,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp,like_count,comments_count'
 
-  const { data, error } = await graphApi<{ data: InstagramPost[] }>(
+  console.log(`[Instagram] Buscando mídias para ID ${instagramUserId}...`)
+
+  // 1. Buscar Posts e Reels da feed
+  const { data: mediaData, error: mediaError } = await graphApi<{ data: InstagramPost[] }>(
     `${instagramUserId}/media?fields=${fields}&limit=${limit}`,
     { accessToken }
   )
 
-  if (error || !data) {
-    console.error('[Instagram] Falha ao buscar posts', error)
-    return []
+  if (mediaError) {
+    console.error('[Instagram] Falha ao buscar media (feed)', mediaError)
   }
 
-  // Filtrar apenas posts e reels (excluir stories)
-  return data.data.filter(
-    p => p.media_product_type === 'POST' || p.media_product_type === 'REEL'
+  // 2. Buscar Stories ativos
+  const { data: storiesData, error: storiesError } = await graphApi<{ data: InstagramPost[] }>(
+    `${instagramUserId}/stories?fields=${fields}&limit=10`,
+    { accessToken }
+  )
+
+  if (storiesError) {
+    console.warn('[Instagram] Falha ao buscar stories (comum se não houver stories ativos)', storiesError)
+  }
+
+  const allMedia = [...(mediaData?.data || []), ...(storiesData?.data || [])]
+
+  // Ordenar por data (mais recente primeiro)
+  return allMedia.sort((a, b) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   )
 }
 

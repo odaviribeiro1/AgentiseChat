@@ -21,18 +21,29 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Nenhuma conta conectada' }, { status: 404 })
   }
 
-  console.log('[API Posts] Iniciando busca para ID:', account.instagram_user_id)
-  
-  const { decryptToken } = await import('@/lib/crypto/tokens')
-  const decryptedToken = decryptToken(account.access_token)
+  try {
+    console.log('[API Posts] Iniciando busca para ID:', account.instagram_user_id)
+    
+    const { decryptToken } = await import('@/lib/crypto/tokens')
+    const decryptedToken = decryptToken(account.access_token)
 
-  const { getInstagramPosts } = await import('@/lib/meta/instagram')
-  const posts = await getInstagramPosts(
-    account.instagram_user_id,
-    decryptedToken
-  )
+    const { getInstagramPosts } = await import('@/lib/meta/instagram')
+    const posts = await getInstagramPosts(
+      account.instagram_user_id,
+      decryptedToken
+    )
 
-  console.log(`[API Posts] Sucesso! Encontrados ${posts.length} posts.`)
+    if (posts.length === 0) {
+      console.warn('[API Posts] Nenhum post ou story encontrado. Verificando token...')
+    }
 
-  return NextResponse.json({ posts })
+    return NextResponse.json({ posts })
+  } catch (err: any) {
+    console.error('[API Posts] Erro crítico:', err)
+    return NextResponse.json({ 
+      error: 'Erro ao buscar mídias', 
+      details: err.message,
+      metaError: err.metaError || null
+    }, { status: 500 })
+  }
 }

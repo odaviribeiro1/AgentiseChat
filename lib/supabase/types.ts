@@ -95,7 +95,7 @@ export type StepConfig =
 // ─── Config do Trigger ────────────────────────────────────────────────────────
 export interface TriggerConfig {
   keywords: string[]
-  match_type: 'contains' | 'exact'
+  match_type: 'contains' | 'exact' | 'any'
   post_id: string | null
   apply_to: 'specific_post' | 'all_posts'
   max_triggers_per_user_hours: number
