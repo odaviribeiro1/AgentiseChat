@@ -23,24 +23,32 @@ export async function POST(request: NextRequest) {
 
   const { decryptToken, encryptToken } = await import('@/lib/crypto/tokens')
   const plainToken = decryptToken(account.access_token)
-  const newToken = await getLongLivedToken(plainToken)
-  if (!newToken) {
-    return NextResponse.json({ error: 'Falha ao renovar token' }, { status: 500 })
+  const result = await getLongLivedToken(plainToken)
+
+  if (result.error) {
+    console.error('[Token Refresh] Falha ao renovar token', result.error)
+    return NextResponse.json(
+      {
+        error: result.error.error,
+        requiresReauth: result.error.requiresReauth,
+      },
+      { status: result.error.requiresReauth ? 401 : 500 }
+    )
   }
 
-  const expiresAt = calculateTokenExpiry(newToken.expires_in)
+  const expiresAt = calculateTokenExpiry(result.data.expires_in)
 
   const serviceClient = createServiceClient()
   const { error: dbError } = await serviceClient
     .from('accounts')
     .update({
-      access_token: encryptToken(newToken.access_token),
+      access_token: encryptToken(result.data.access_token),
       token_expires_at: expiresAt.toISOString(),
     })
     .eq('id', account.id)
 
   if (dbError) {
-    console.error('[Token Refresh] Falha ao atualizar token', dbError)
+    console.error('[Token Refresh] Falha ao atualizar token no banco', dbError)
     return NextResponse.json({ error: 'Falha ao salvar token' }, { status: 500 })
   }
 

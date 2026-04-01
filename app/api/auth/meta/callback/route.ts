@@ -49,11 +49,12 @@ export async function GET(request: NextRequest) {
 
   // Converter para token de longa duração (60 dias)
   console.log('[OAuth Callback] Convertendo para longToken...')
-  const longToken = await getLongLivedToken(shortToken.access_token)
-  if (!longToken) {
-    console.error('[OAuth Callback] Falha ao obter longToken')
+  const longTokenResult = await getLongLivedToken(shortToken.access_token)
+  if (longTokenResult.error) {
+    console.error('[OAuth Callback] Falha ao obter longToken', longTokenResult.error)
     return NextResponse.redirect(`${appUrl}/conexao?error=long_token_failed`)
   }
+  const longToken = longTokenResult.data
 
   // Buscar perfil do Instagram
   console.log('[OAuth Callback] Buscando perfil do Instagram...')

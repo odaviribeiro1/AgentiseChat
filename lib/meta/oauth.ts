@@ -78,15 +78,25 @@ export async function exchangeCodeForToken(code: string): Promise<{
   }
 }
 
-/**
- * Converte token de curta duração (1h) em token de longa duração (60 dias).
- * SEMPRE fazer esta conversão após o OAuth.
- */
-export async function getLongLivedToken(shortToken: string): Promise<{
+export interface LongLivedTokenResult {
   access_token: string
   token_type: string
   expires_in: number              // segundos até expirar (~5184000 = 60 dias)
-} | null> {
+}
+
+export interface LongLivedTokenError {
+  error: string
+  requiresReauth: boolean         // true = token expirado, precisa de novo OAuth
+}
+
+/**
+ * Converte token de curta duração (1h) em token de longa duração (60 dias).
+ * Também serve para renovar um token de longa duração ainda válido.
+ * Se o token expirou, retorna requiresReauth: true — não é possível renovar sem novo OAuth.
+ */
+export async function getLongLivedToken(
+  shortToken: string
+): Promise<{ data: LongLivedTokenResult; error: null } | { data: null; error: LongLivedTokenError }> {
   const params = new URLSearchParams({
     grant_type: 'fb_exchange_token',
     client_id: process.env.META_APP_ID!,
@@ -96,15 +106,21 @@ export async function getLongLivedToken(shortToken: string): Promise<{
 
   try {
     const response = await fetch(`${LONG_LIVED_URL}?${params.toString()}`)
+    const json = await response.json()
+
     if (!response.ok) {
-      const error = await response.json()
-      console.error('[OAuth] Falha ao obter token de longa duração', error)
-      return null
+      const metaMessage: string = json?.error?.message ?? `HTTP ${response.status}`
+      const errorCode: number = json?.error?.code ?? 0
+      // code 190 = OAuthException — session expired or token revoked
+      const requiresReauth = errorCode === 190 || response.status === 400
+      console.error('[OAuth] Falha ao obter token de longa duração', { metaMessage, errorCode })
+      return { data: null, error: { error: metaMessage, requiresReauth } }
     }
-    return response.json()
+
+    return { data: json as LongLivedTokenResult, error: null }
   } catch (err) {
     console.error('[OAuth] Erro ao obter token de longa duração', err)
-    return null
+    return { data: null, error: { error: 'Falha de rede ao renovar token', requiresReauth: false } }
   }
 }
 
