@@ -47,9 +47,11 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
     isSaving, setIsSaving, selectStep 
   } = useStepBuilderStore()
 
+  const [isMounted, setIsMounted] = useState(false)
   const isTriggerSelected = selectedStepId === 'trigger'
 
   useEffect(() => {
+    setIsMounted(true)
     setAutomationId(automationId, 'comment_keyword', initialSteps[0]?.automation_id ? initialSteps[0] : undefined) 
     // Note: Em uma implementação real, o trigger viria do objeto automation pai.
     setSteps(initialSteps)
@@ -63,6 +65,8 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
+
+  if (!isMounted) return <div className="flex-1 bg-white/50 rounded-xl animate-pulse h-[500px]" />
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event

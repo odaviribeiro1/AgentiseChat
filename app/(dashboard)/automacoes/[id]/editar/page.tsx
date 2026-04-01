@@ -7,9 +7,21 @@ export default async function StepBuilderPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  console.log('[StepBuilderPage] Iniciando renderização...')
+
   try {
     const { id } = await params
-    if (!id || id.length < 10) throw new Error('ID Inválido')
+    console.log('[StepBuilderPage] ID da automação:', id)
+
+    if (!id || id.length < 10) {
+      console.error('[StepBuilderPage] ID Inválido ou Malformado')
+      throw new Error('ID Inválido')
+    }
+
+    // Verificar se a chave de serviço está presente (ajuda no diagnóstico do Vercel)
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[StepBuilderPage] ERRO: Chave SUPABASE_SERVICE_ROLE_KEY não configurada no servidor.')
+    }
 
     const supabase = createServiceClient()
 

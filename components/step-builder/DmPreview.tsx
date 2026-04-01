@@ -1,9 +1,17 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useStepBuilderStore } from '@/lib/stores/step-builder'
 
 export function DmPreview() {
   const steps = useStepBuilderStore(s => s.steps)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) return <div className="w-[350px] bg-white/50 rounded-xl animate-pulse h-[600px]" />
 
   return (
     <div className="bg-[#F0F2F5] rounded-xl border border-[#E2E8F0] p-4 flex flex-col h-[600px] overflow-hidden sticky top-8">
