@@ -43,16 +43,6 @@ export async function POST(request: NextRequest) {
     return new NextResponse('OK', { status: 200 })
   }
 
-  // 2. Verificar assinatura HMAC — CRÍTICO
-  //    Retornar 200 mesmo se inválido (não revelar ao atacante que falhou)
-  const signature = request.headers.get('x-hub-signature-256')
-  const isValid = verifyWebhookSignature(rawBody, signature)
-
-  if (!isValid) {
-    console.warn('[Webhook] Assinatura HMAC inválida — ignorando payload')
-    return new NextResponse('OK', { status: 200 })
-  }
-
   // 3. Parse do payload
   let payload: MetaWebhookPayload
   try {
@@ -62,9 +52,29 @@ export async function POST(request: NextRequest) {
     return new NextResponse('OK', { status: 200 })
   }
 
-  // 4. Salvar eventos brutos e despachar processamento de forma assíncrona
-  //    Promise.allSettled sem await — não bloqueia a resposta de 200ms
+  // 4. LOG DE DEPURAÇÃO: Salvar absolutamente tudo que chega (antes da assinatura)
   const supabase = createServiceClient()
+  const signature = request.headers.get('x-hub-signature-256')
+  const isValid = verifyWebhookSignature(rawBody, signature)
+
+  await supabase.from('webhook_events').insert({
+    event_type: 'raw_incoming',
+    payload: { 
+      body: payload, 
+      signature, 
+      isValid,
+      userAgent: request.headers.get('user-agent')
+    } as any,
+    error: isValid ? null : 'Assinatura HMAC inválida ou ausente',
+  })
+
+  // 5. Verificar assinatura HMAC
+  if (!isValid) {
+    console.warn('[Webhook] Assinatura HMAC inválida — ignorando processamento')
+    return new NextResponse('OK', { status: 200 })
+  }
+
+  // 6. Despachar processamento
   const events = parseWebhookPayload(payload)
 
   Promise.allSettled(
