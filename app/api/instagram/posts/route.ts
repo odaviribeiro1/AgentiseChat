@@ -23,18 +23,9 @@ export async function GET(request: NextRequest) {
   const { decryptToken } = await import('@/lib/crypto/tokens')
   const decryptedToken = decryptToken(account.access_token)
 
-  // Validar token antes de chamadas caras
-  const { validateToken, getInstagramPosts } = await import('@/lib/meta/instagram')
-  const isValid = await validateToken(decryptedToken)
-  if (!isValid) {
-    return NextResponse.json(
-      { error: 'Token do Instagram inválido ou expirado. Reconecte sua conta em Configurações → Conexão.' },
-      { status: 401 }
-    )
-  }
-
   console.log('[API Posts] Iniciando busca para ID:', account.instagram_user_id)
 
+  const { getInstagramPosts } = await import('@/lib/meta/instagram')
   const { posts, error } = await getInstagramPosts(account.instagram_user_id, decryptedToken)
 
   if (error) {
