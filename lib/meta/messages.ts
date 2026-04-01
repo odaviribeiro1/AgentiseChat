@@ -68,7 +68,8 @@ export async function sendImageMessage(
 export async function sendQuickReplies(
   recipientIgId: string,
   text: string,
-  buttons: Array<{ title: string; payload: string }>
+  buttons: Array<{ title: string; payload: string }>,
+  accessToken?: string
 ): Promise<MetaSendMessageResponse | null> {
   if (buttons.length > 13) {
     console.warn('[Messages] Quick Replies limitado a 13 botões pela Meta API')
@@ -77,6 +78,7 @@ export async function sendQuickReplies(
 
   const { data, error } = await graphApi<MetaSendMessageResponse>(MESSAGES_ENDPOINT, {
     method: 'POST',
+    accessToken,
     body: {
       recipient: { id: recipientIgId },
       message: {

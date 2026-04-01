@@ -15,7 +15,8 @@ export async function executeCtaButtonStep(
     ctx.contact.instagram_user_id,
     text,
     config.button_title,
-    config.url
+    config.url,
+    ctx.account.access_token
   )
 
   if (!result) {

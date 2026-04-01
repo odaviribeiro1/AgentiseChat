@@ -178,15 +178,17 @@ async function updateContactWindow(
 
   if (!account) return
 
-  // Upsert do contato — cria se não existe, atualiza last_message_at se já existe
-  // window_expires_at é calculada automaticamente via trigger (set_contact_window_expires_at)
+  const now = new Date()
+  const windowExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
+
   const { error } = await supabase
     .from('contacts')
     .upsert(
       {
         account_id: account.id,
         instagram_user_id: senderIgId,
-        last_message_at: new Date().toISOString(),
+        last_message_at: now.toISOString(),
+        window_expires_at: windowExpiresAt,
       },
       { onConflict: 'account_id,instagram_user_id' }
     )

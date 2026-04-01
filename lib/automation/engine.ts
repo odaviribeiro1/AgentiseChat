@@ -198,14 +198,15 @@ export function matchesKeyword(comment: string, config: TriggerConfig): boolean 
 
 /**
  * Upsert do contato que gerou o evento.
- * Cria se não existe, atualiza last_message_at se já existe.
- * window_expires_at é calculada automaticamente via trigger no banco.
+ * Cria se não existe, atualiza last_message_at e window_expires_at se já existe.
  */
 async function upsertContact(
   account: AccountRow,
   senderIgId: string
 ): Promise<ContactRow | null> {
   const supabase = createServiceClient()
+  const now = new Date()
+  const windowExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
     .from('contacts')
@@ -213,7 +214,8 @@ async function upsertContact(
       {
         account_id: account.id,
         instagram_user_id: senderIgId,
-        last_message_at: new Date().toISOString(),
+        last_message_at: now.toISOString(),
+        window_expires_at: windowExpiresAt,
       },
       { onConflict: 'account_id,instagram_user_id' }
     )

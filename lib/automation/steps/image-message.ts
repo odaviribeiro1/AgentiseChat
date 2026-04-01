@@ -16,7 +16,8 @@ export async function executeImageMessageStep(
   const result = await sendImageMessage(
     ctx.contact.instagram_user_id,
     config.image_url,
-    caption
+    caption,
+    ctx.account.access_token
   )
 
   if (!result) {

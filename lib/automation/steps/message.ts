@@ -14,7 +14,7 @@ export async function executeMessageStep(
     postTitle: ctx.triggerPostTitle,
   })
 
-  const result = await sendTextMessage(ctx.contact.instagram_user_id, text)
+  const result = await sendTextMessage(ctx.contact.instagram_user_id, text, ctx.account.access_token)
 
   if (!result) {
     return { success: false, nextStepId: null, error: 'Falha ao enviar mensagem' }
