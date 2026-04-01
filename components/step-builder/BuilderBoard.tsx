@@ -36,15 +36,22 @@ interface BuilderBoardProps {
   initialSteps: StepLocal[]
 }
 
+import { TriggerForm } from './forms/TriggerForm'
+import { Hash } from 'lucide-react'
+
 export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) {
   const { 
     steps, setSteps, reorderSteps, addStep, 
     setAutomationId, selectedStepId, updateStepConfig,
-    isSaving, setIsSaving 
+    triggerType, triggerConfig, updateTrigger,
+    isSaving, setIsSaving, selectStep 
   } = useStepBuilderStore()
 
+  const isTriggerSelected = selectedStepId === 'trigger'
+
   useEffect(() => {
-    setAutomationId(automationId)
+    setAutomationId(automationId, 'comment_keyword', initialSteps[0]?.automation_id ? initialSteps[0] : undefined) 
+    // Note: Em uma implementação real, o trigger viria do objeto automation pai.
     setSteps(initialSteps)
   }, [automationId, initialSteps, setAutomationId, setSteps])
 
@@ -67,7 +74,7 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
   const handleSave = async () => {
     try {
       setIsSaving(true)
-      const res = await saveAutomationSteps(automationId, steps)
+      const res = await saveAutomationSteps(automationId, steps, triggerType, triggerConfig)
       if (res.success) {
         toast.success('Automação salva com sucesso!')
       } else {
@@ -80,11 +87,11 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
     }
   }
 
-  const selectedStep = steps.find(s => s.id === selectedStepId)
+  const selectedStep = isTriggerSelected ? null : steps.find(s => s.id === selectedStepId)
 
   return (
     <div className="flex-1 flex gap-6">
-      {/* Coluna da Esquerda: Lista de Steps (DND) */}
+      {/* Coluna da Esquerda: Lista de Steps (DND) + Trigger */}
       <div className="w-1/2 flex flex-col gap-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-bold text-[#1A202C]">Fluxo da Automação</h2>
@@ -96,6 +103,30 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
             <Save className="w-4 h-4" />
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
+        </div>
+
+        {/* Card do Gatilho (Fixo no Topo) */}
+        <div 
+          onClick={() => selectStep('trigger')}
+          className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            isTriggerSelected 
+              ? 'bg-[#EBF3FF] border-[#2B7FFF] shadow-md shadow-[#2B7FFF]/10' 
+              : 'bg-white border-[#E2E8F0] hover:border-[#2B7FFF]/50'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-[#2B7FFF] text-white p-2 rounded-lg">
+              <Hash className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#2B7FFF]">Gatilho de Entrada</p>
+              <h3 className="font-bold text-[#1A202C]">Configurar Palavra-chave</h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center py-2 h-8">
+           <div className="w-0.5 h-full bg-[#E2E8F0]"></div>
         </div>
 
         <DndContext 
@@ -123,66 +154,69 @@ export function BuilderBoard({ automationId, initialSteps }: BuilderBoardProps) 
         </StepTypeSelector>
       </div>
 
-      {/* Coluna Central: Edição do Step Selecionado */}
+      {/* Coluna Central: Edição do Step/Trigger Selecionado */}
       <div className="w-1/2">
-        {selectedStep ? (
+        {(selectedStep || isTriggerSelected) ? (
           <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 sticky top-8">
             <h3 className="text-lg font-bold text-[#1A202C] mb-6 border-b border-[#E2E8F0] pb-4">
-              Configurar Passo
+              {isTriggerSelected ? 'Configurar Gatilho' : 'Configurar Passo'}
             </h3>
             
-            {/* Render form dynamically */}
-            {selectedStep.type === 'message' && (
+            {isTriggerSelected && (
+              <TriggerForm 
+                initialConfig={triggerConfig} 
+                onChange={(c) => updateTrigger('comment_keyword', c)} 
+              />
+            )}
+
+            {/* Render form dynamically for steps */}
+            {selectedStep?.type === 'message' && (
               <MessageStepForm 
                 initialConfig={selectedStep.config as any} 
                 onChange={(c) => updateStepConfig(selectedStep.id, c)} 
               />
             )}
-            {selectedStep.type === 'quick_reply' && (
+            {/* ... rest of step forms ... */}
+            {selectedStep?.type === 'quick_reply' && (
               <QuickReplyForm 
                 initialConfig={selectedStep.config as any} 
                 onChange={(c) => updateStepConfig(selectedStep.id, c)} 
               />
             )}
-            {selectedStep.type === 'delay' && (
+            {selectedStep?.type === 'delay' && (
               <DelayStepForm 
                 initialConfig={selectedStep.config as any} 
                 onChange={(c) => updateStepConfig(selectedStep.id, c)} 
               />
             )}
-            {selectedStep.type === 'ai' && (
+            {selectedStep?.type === 'ai' && (
               <AiStepForm 
                 initialConfig={selectedStep.config as any} 
                 onChange={(c) => updateStepConfig(selectedStep.id, c)} 
               />
             )}
-            {selectedStep.type === 'condition' && (
+            {selectedStep?.type === 'condition' && (
               <ConditionStepForm
                 initialConfig={selectedStep.config as ConditionStepConfig}
                 onChange={(c) => updateStepConfig(selectedStep.id, c)}
               />
             )}
-            {selectedStep.type === 'tag' && (
+            {selectedStep?.type === 'tag' && (
               <TagStepForm
                 initialConfig={selectedStep.config as TagStepConfig}
                 onChange={(c) => updateStepConfig(selectedStep.id, c)}
               />
             )}
-            {selectedStep.type === 'cta_button' && (
+            {selectedStep?.type === 'cta_button' && (
               <CtaButtonStepForm
                 initialConfig={selectedStep.config as CtaButtonStepConfig}
                 onChange={(c) => updateStepConfig(selectedStep.id, c)}
               />
             )}
-            {!['message', 'quick_reply', 'delay', 'ai', 'condition', 'tag', 'cta_button'].includes(selectedStep.type) && (
-              <div className="text-sm text-[#718096]">
-                Formulário para o tipo <strong>{selectedStep.type}</strong> não implementado.
-              </div>
-            )}
           </div>
         ) : (
           <div className="bg-[#F8F9FB] rounded-xl border border-dashed border-[#E2E8F0] h-[300px] flex items-center justify-center text-[#A0AEC0] sticky top-8 font-medium">
-            Selecione um passo para configurar
+            Selecione o Gatilho ou um passo para configurar
           </div>
         )}
       </div>

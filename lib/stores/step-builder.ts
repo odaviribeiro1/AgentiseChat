@@ -8,14 +8,17 @@ export type StepLocal = Omit<StepRow, 'config'> & {
 
 interface StepBuilderState {
   automationId: string | null
+  triggerType: string
+  triggerConfig: any
   steps: StepLocal[]
   selectedStepId: string | null
   isSaving: boolean
 
-  setAutomationId: (id: string) => void
+  setAutomationId: (id: string, triggerType?: string, triggerConfig?: any) => void
   setSteps: (steps: StepLocal[]) => void
   addStep: (type: StepType, parent_step_id?: string | null, branch_value?: string | null) => void
   updateStepConfig: (id: string, config: StepConfig) => void
+  updateTrigger: (type: string, config: any) => void
   removeStep: (id: string) => void
   reorderSteps: (activeId: string, overId: string) => void
   selectStep: (id: string | null) => void
@@ -49,12 +52,23 @@ const getDefaultConfig = (type: StepType): StepConfig => {
 
 export const useStepBuilderStore = create<StepBuilderState>((set) => ({
   automationId: null,
+  triggerType: 'comment_keyword',
+  triggerConfig: { keywords: [], apply_to: 'specific_post', post_id: null },
   steps: [],
   selectedStepId: null,
   isSaving: false,
 
-  setAutomationId: (id) => set({ automationId: id }),
+  setAutomationId: (id, triggerType, triggerConfig) => set({ 
+    automationId: id,
+    triggerType: triggerType || 'comment_keyword',
+    triggerConfig: triggerConfig || { keywords: [], apply_to: 'specific_post', post_id: null }
+  }),
   setSteps: (steps) => set({ steps }),
+  
+  updateTrigger: (type, config) => set({ 
+    triggerType: type,
+    triggerConfig: config 
+  }),
   
   addStep: (type, parent_step_id = null, branch_value = null) => set((state) => {
     // Definir a posição com base no número de irmãos
