@@ -11,13 +11,22 @@ export async function executeQuickReplyStep(
   const config = step.config as unknown as QuickReplyStepConfig
   const text = interpolateVariables(config.text, { contact: ctx.contact })
 
-  const result = await sendQuickReplies(
-    ctx.contact.instagram_user_id,
-    text,
-    config.buttons,
-    ctx.account.access_token,
-    ctx.account.instagram_user_id
-  )
+  let result
+  if (ctx.triggerCommentId && ctx.isFirstMessage) {
+    const { sendPrivateReply } = await import('@/lib/meta/messages')
+    // Fallback: private_replies não suporta botões. Enviamos o texto e as opções como texto.
+    const options = config.buttons.map(b => `• ${b.title}`).join('\n')
+    const fallbackText = `${text}\n\n${options}\n\n(Dica: Responda a esta mensagem com a opção desejada!)`
+    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token)
+  } else {
+    result = await sendQuickReplies(
+      ctx.contact.instagram_user_id,
+      text,
+      config.buttons,
+      ctx.account.access_token,
+      ctx.account.instagram_user_id
+    )
+  }
 
   if (!result) {
     return { success: false, nextStepId: null, error: 'Falha ao enviar quick replies' }

@@ -9,6 +9,8 @@ export interface StepExecutionContext {
   contact: ContactRow           // mutável — steps de tag atualizam ctx.contact.tags
   allSteps: StepRow[]           // todos os steps da automação (para navegação)
   triggerPostTitle?: string     // título/ID do post que disparou o trigger
+  triggerCommentId?: string     // ID do comentário para Private Replies
+  isFirstMessage?: boolean      // identifica se é a primeira mensagem do fluxo
 }
 
 /**
@@ -21,7 +23,7 @@ export async function executeAutomationRun(
   ctx: Omit<StepExecutionContext, 'runId'>
 ): Promise<void> {
   const supabase = createServiceClient()
-  const fullCtx: StepExecutionContext = { ...ctx, runId }
+  const fullCtx: StepExecutionContext = { ...ctx, runId, isFirstMessage: true }
 
   let currentStepId: string | null = firstStepId
 
@@ -74,6 +76,10 @@ export async function executeAutomationRun(
       return
     }
 
+    if (result.success && ['message', 'image_message', 'quick_reply', 'cta_button'].includes(step.type)) {
+      fullCtx.isFirstMessage = false
+    }
+    
     currentStepId = result.nextStepId
   }
 
@@ -164,8 +170,13 @@ export async function resumeAutomationRun(
     const defaultStep = childSteps.find(s => !s.branch_value)
     if (defaultStep) {
       await updateRunStatus(run.id, 'running')
-      // fire and forget
-      executeAutomationRun(run.id, defaultStep.id, { account, contact, allSteps: steps }).catch(err => {
+      // Executar o fluxo — fire and forget (não bloqueia o webhook)
+      executeAutomationRun(run.id, defaultStep.id, {
+        account,
+        contact,
+        allSteps: steps,
+        triggerCommentId: run.trigger_event_id ?? undefined,
+      }).catch(err => {
         console.error('[Executor] Erro fatal no resume', err)
       })
       return true

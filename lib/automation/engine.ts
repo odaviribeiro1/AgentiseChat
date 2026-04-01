@@ -174,6 +174,7 @@ async function evaluateAndRun(
     contact,
     allSteps: steps,
     triggerPostTitle: event.comment!.postId,
+    triggerCommentId: run.trigger_event_id ?? undefined,
   }).catch(err => {
     console.error('[Engine] Erro fatal no executor', { runId: run.id, err })
   })

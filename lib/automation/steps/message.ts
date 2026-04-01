@@ -14,7 +14,13 @@ export async function executeMessageStep(
     postTitle: ctx.triggerPostTitle,
   })
 
-  const result = await sendTextMessage(ctx.contact.instagram_user_id, text, ctx.account.access_token, ctx.account.instagram_user_id)
+  let result
+  if (ctx.triggerCommentId && ctx.isFirstMessage) {
+    const { sendPrivateReply } = await import('@/lib/meta/messages')
+    result = await sendPrivateReply(ctx.triggerCommentId, text, ctx.account.access_token)
+  } else {
+    result = await sendTextMessage(ctx.contact.instagram_user_id, text, ctx.account.access_token, ctx.account.instagram_user_id)
+  }
 
   if (!result) {
     return { success: false, nextStepId: null, error: 'Falha ao enviar mensagem' }

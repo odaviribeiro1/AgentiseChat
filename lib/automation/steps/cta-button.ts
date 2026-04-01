@@ -11,14 +11,22 @@ export async function executeCtaButtonStep(
   const config = step.config as unknown as CtaButtonStepConfig
   const text = interpolateVariables(config.text, { contact: ctx.contact })
 
-  const result = await sendCtaButton(
-    ctx.contact.instagram_user_id,
-    text,
-    config.button_title,
-    config.url,
-    ctx.account.access_token,
-    ctx.account.instagram_user_id
-  )
+  let result
+  if (ctx.triggerCommentId && ctx.isFirstMessage) {
+    const { sendPrivateReply } = await import('@/lib/meta/messages')
+    // Fallback: private_replies não suporta botões. Enviamos o texto e um lembrete.
+    const fallbackText = `${text}\n\n(Dica: Responda a esta mensagem para liberar os botões interativos!)`
+    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token)
+  } else {
+    result = await sendCtaButton(
+      ctx.contact.instagram_user_id,
+      text,
+      config.button_title,
+      config.url,
+      ctx.account.access_token,
+      ctx.account.instagram_user_id
+    )
+  }
 
   if (!result) {
     return { success: false, nextStepId: null, error: 'Falha ao enviar CTA button' }

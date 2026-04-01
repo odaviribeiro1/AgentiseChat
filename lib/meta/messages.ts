@@ -165,3 +165,25 @@ export async function replyToComment(
 
   return data
 }
+// ─── Resposta privada via comentário (Private Reply) ───────────────────────
+export async function sendPrivateReply(
+  commentId: string,
+  text: string,
+  accessToken?: string
+): Promise<MetaSendMessageResponse | null> {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(
+    `${commentId}/private_replies`,
+    {
+      method: 'POST',
+      body: { message: text },
+      accessToken,
+    }
+  )
+
+  if (error) {
+    console.error('[Messages] Falha ao enviar resposta privada', { commentId, error })
+    return null
+  }
+
+  return data
+}

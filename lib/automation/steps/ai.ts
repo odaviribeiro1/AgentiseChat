@@ -42,10 +42,18 @@ export async function executeAiStep(
   }
 
   // 4. Enviar a mensagem final de volta para o cliente
-  const result = await sendTextMessage(
-    ctx.contact.instagram_user_id,
-    responseText
-  )
+  let result
+  if (ctx.triggerCommentId && ctx.isFirstMessage) {
+    const { sendPrivateReply } = await import('@/lib/meta/messages')
+    result = await sendPrivateReply(ctx.triggerCommentId, responseText, ctx.account.access_token)
+  } else {
+    result = await sendTextMessage(
+      ctx.contact.instagram_user_id,
+      responseText,
+      ctx.account.access_token,
+      ctx.account.instagram_user_id
+    )
+  }
 
   if (!result) {
     return { success: false, nextStepId: null, error: 'Falha ao enviar mensagem de AI DM' }
