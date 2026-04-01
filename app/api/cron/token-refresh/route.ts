@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
   for (const account of expiringAccounts) {
     try {
       const plainToken = decryptToken(account.access_token)
-      const newToken = await getLongLivedToken(plainToken)
+      const result = await getLongLivedToken(plainToken)
 
-      if (!newToken) {
-        console.error(`[Cron/TokenRefresh] Falha ao renovar token para conta ${account.id}`)
+      if (result.error) {
+        console.error(`[Cron/TokenRefresh] Falha ao renovar token para conta ${account.id}`, result.error)
         failed++
         continue
       }
@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       const { error: updateError } = await supabase
         .from('accounts')
         .update({
-          access_token: encryptToken(newToken.access_token),
-          token_expires_at: calculateTokenExpiry(newToken.expires_in).toISOString(),
+          access_token: encryptToken(result.data.access_token),
+          token_expires_at: calculateTokenExpiry(result.data.expires_in).toISOString(),
         })
         .eq('id', account.id)
 
