@@ -1,6 +1,6 @@
-const OAUTH_BASE = 'https://www.facebook.com/dialog/oauth'
-const TOKEN_URL = 'https://graph.facebook.com/oauth/access_token'
-const LONG_LIVED_URL = 'https://graph.facebook.com/oauth/access_token'
+const OAUTH_BASE = 'https://www.facebook.com/v21.0/dialog/oauth'
+const TOKEN_URL = 'https://graph.facebook.com/v21.0/oauth/access_token'
+const LONG_LIVED_URL = 'https://graph.facebook.com/v21.0/oauth/access_token'
 
 // Permissões necessárias para a plataforma
 const REQUIRED_SCOPES = [
@@ -17,6 +17,7 @@ const REQUIRED_SCOPES = [
  */
 export function buildOAuthUrl(state: string): string {
   const appId = process.env.META_APP_ID
+  const configId = process.env.META_CONFIG_ID
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const redirectUri = process.env.META_REDIRECT_URI || `${appUrl}/api/auth/meta/callback`
 
@@ -27,6 +28,11 @@ export function buildOAuthUrl(state: string): string {
     response_type: 'code',
     state,                          // CSRF protection
   })
+
+  // Facebook Login for Business exige config_id
+  if (configId) {
+    params.append('config_id', configId)
+  }
 
   const url = `${OAUTH_BASE}?${params.toString()}`
   console.log('[OAuth] Gerando URL de autorização:', url)
