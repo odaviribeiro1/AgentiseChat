@@ -8,7 +8,7 @@ const REQUIRED_SCOPES = [
   'instagram_manage_comments',
   'instagram_manage_messages',
   'pages_manage_metadata',
-  'pages_read_engagement',
+  'pages_manage_engagement',
 ].join(',')
 
 /**
