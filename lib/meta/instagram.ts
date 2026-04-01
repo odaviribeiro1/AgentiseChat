@@ -15,6 +15,7 @@ export interface InstagramPost {
   media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
   media_product_type: 'POST' | 'REEL' | 'STORY'
   thumbnail_url?: string
+  media_url?: string
   permalink: string
   timestamp: string
   like_count?: number
@@ -84,7 +85,7 @@ export async function getInstagramPosts(
   accessToken: string,
   limit = 20
 ): Promise<InstagramPost[]> {
-  const fields = 'id,caption,media_type,media_product_type,thumbnail_url,permalink,timestamp,like_count,comments_count'
+  const fields = 'id,caption,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp,like_count,comments_count'
 
   const { data, error } = await graphApi<{ data: InstagramPost[] }>(
     `${instagramUserId}/media?fields=${fields}&limit=${limit}`,

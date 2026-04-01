@@ -98,7 +98,7 @@ export function PostsList({ accountId }: PostsListProps) {
               <div className="aspect-square bg-[#F7FAFC] relative overflow-hidden">
                 {post.thumbnail_url ? (
                   <img
-                    src={post.thumbnail_url}
+                    src={post.thumbnail_url || post.media_url}
                     alt={post.caption ?? 'Post'}
                     className="w-full h-full object-cover"
                   />
