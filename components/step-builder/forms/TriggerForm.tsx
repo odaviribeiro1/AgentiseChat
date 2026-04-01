@@ -17,16 +17,23 @@ interface TriggerFormProps {
 export function TriggerForm({ initialConfig, onChange }: TriggerFormProps) {
   const [posts, setPosts] = useState<InstagramPost[]>([])
   const [loadingPosts, setLoadingPosts] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [keywordInput, setKeywordInput] = useState('')
 
   const fetchPosts = async () => {
     setLoadingPosts(true)
+    setFetchError(null)
     try {
       const res = await fetch('/api/instagram/posts')
       const json = await res.json()
+      if (!res.ok) {
+        setFetchError(json.error || `Erro ${res.status} ao buscar posts`)
+        setPosts([])
+        return
+      }
       setPosts(json.posts || [])
     } catch (e) {
-      console.error('Erro ao buscar posts para o gatilho')
+      setFetchError('Erro de rede ao buscar posts do Instagram')
     } finally {
       setLoadingPosts(false)
     }
@@ -170,7 +177,17 @@ export function TriggerForm({ initialConfig, onChange }: TriggerFormProps) {
               </button>
             )
           })}
-          {posts.length === 0 && !loadingPosts && (
+          {fetchError && !loadingPosts && (
+            <div className="col-span-2 py-6 flex flex-col items-center justify-center text-center px-3">
+              <ImageIcon className="w-7 h-7 mb-2 text-[#E53E3E] opacity-60" />
+              <p className="text-xs font-semibold text-[#E53E3E] mb-1">Não foi possível carregar os posts</p>
+              <p className="text-[11px] text-[#718096]">{fetchError}</p>
+              <button onClick={fetchPosts} className="mt-3 text-[11px] font-bold text-[#2B7FFF] hover:underline">
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          {!fetchError && posts.length === 0 && !loadingPosts && (
             <div className="col-span-2 py-8 flex flex-col items-center justify-center text-[#A0AEC0]">
               <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
               <p className="text-xs">Nenhum post encontrado para selecionar.</p>

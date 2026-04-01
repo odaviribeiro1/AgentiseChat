@@ -56,7 +56,7 @@ export default async function StepBuilderPage({
     }))
 
     return (
-      <div className="min-h-screen bg-[#F0F2F5] p-8 -m-8 flex flex-col">
+      <div className="min-h-screen bg-[#F0F2F5] p-8 flex flex-col">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
