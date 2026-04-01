@@ -40,22 +40,30 @@ export async function GET(request: NextRequest) {
   }
 
   // Trocar code por token de curta duração
+  console.log('[OAuth Callback] Trocando code por shortToken...')
   const shortToken = await exchangeCodeForToken(code)
   if (!shortToken) {
+    console.error('[OAuth Callback] Falha na troca de code por token')
     return NextResponse.redirect(`${appUrl}/conexao?error=token_exchange_failed`)
   }
 
   // Converter para token de longa duração (60 dias)
+  console.log('[OAuth Callback] Convertendo para longToken...')
   const longToken = await getLongLivedToken(shortToken.access_token)
   if (!longToken) {
+    console.error('[OAuth Callback] Falha ao obter longToken')
     return NextResponse.redirect(`${appUrl}/conexao?error=long_token_failed`)
   }
 
   // Buscar perfil do Instagram
+  console.log('[OAuth Callback] Buscando perfil do Instagram...')
   const profile = await getInstagramProfile(longToken.access_token)
   if (!profile) {
+    console.error('[OAuth Callback] Perfil do Instagram não encontrado após busca exaustiva')
     return NextResponse.redirect(`${appUrl}/conexao?error=profile_failed`)
   }
+
+  console.log(`[OAuth Callback] Perfil encontrado: @${profile.username} (ID: ${profile.id})`)
 
   // Salvar/atualizar conta no banco usando service role
   const { encryptToken } = await import('@/lib/crypto/tokens')

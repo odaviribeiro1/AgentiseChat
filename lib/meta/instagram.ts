@@ -23,22 +23,56 @@ export interface InstagramPost {
 
 /**
  * Busca o perfil da conta Instagram Business conectada.
- * Requer token de acesso válido.
+ * Lógica robusta: Busca as páginas do usuário e identifica a conta do Instagram vinculada.
  */
 export async function getInstagramProfile(
   accessToken: string
 ): Promise<InstagramProfile | null> {
-  const { data, error } = await graphApi<InstagramProfile>(
-    'me?fields=id,username,name,profile_picture_url,followers_count,media_count',
+  console.log('[Instagram] Iniciando busca de perfil...')
+
+  // 1. Buscar as páginas (Accounts) do usuário
+  const { data: accountsData, error: accountsError } = await graphApi<{ data: any[] }>(
+    'me/accounts?fields=id,name,access_token',
     { accessToken }
   )
 
-  if (error || !data) {
-    console.error('[Instagram] Falha ao buscar perfil', error)
-    return null
+  if (accountsError || !accountsData?.data?.length) {
+    console.error('[Instagram] Falha ao buscar páginas do Facebook ou nenhuma página encontrada', accountsError)
+    // Tenta fallback direto no /me (pode funcionar em alguns casos de permissão legada)
+    const { data: meData } = await graphApi<InstagramProfile>(
+      'me?fields=id,username,name,profile_picture_url',
+      { accessToken }
+    )
+    return meData
   }
 
-  return data
+  console.log(`[Instagram] ${accountsData.data.length} páginas encontradas. Buscando IG Business Account...`)
+
+  // 2. Para cada página, buscar o instagram_business_account vinculado
+  for (const page of accountsData.data) {
+    const { data: pageData } = await graphApi<{ instagram_business_account?: { id: string } }>(
+      `${page.id}?fields=instagram_business_account`,
+      { accessToken }
+    )
+
+    if (pageData?.instagram_business_account?.id) {
+      const igId = pageData.instagram_business_account.id
+      console.log(`[Instagram] Conta Business encontrada: ${igId}. Buscando detalhes...`)
+
+      // 3. Buscar os detalhes da conta do Instagram
+      const { data: igProfile, error: igError } = await graphApi<InstagramProfile>(
+        `${igId}?fields=id,username,name,profile_picture_url,followers_count,media_count`,
+        { accessToken }
+      )
+
+      if (igProfile) {
+        return igProfile
+      }
+    }
+  }
+
+  console.error('[Instagram] Nenhuma conta de Instagram Business vinculada às páginas do Facebook foi encontrada.')
+  return null
 }
 
 /**

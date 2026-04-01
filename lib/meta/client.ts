@@ -1,4 +1,4 @@
-const GRAPH_API_VERSION = 'v19.0'
+const GRAPH_API_VERSION = 'v21.0'
 const BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`
 
 interface GraphApiRequestOptions {
