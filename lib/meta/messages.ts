@@ -191,10 +191,10 @@ export async function sendPrivateReply(
 
   if (error) {
     console.error('[Messages] Falha ao enviar resposta privada', { commentId, error, status })
-    // Logar erro no banco para diagnóstico
     try {
       const { createServiceClient } = await import('@/lib/supabase/server')
       const supabase = createServiceClient()
+      const tokenUsed = accessToken ?? process.env.INSTAGRAM_ACCESS_TOKEN ?? ''
       await supabase.from('webhook_events').insert({
         event_type: 'send_error',
         payload: {
@@ -203,6 +203,9 @@ export async function sendPrivateReply(
           senderIgId,
           error,
           status,
+          endpoint: messagesEndpoint(senderIgId),
+          tokenPrefix: tokenUsed.slice(0, 10),
+          tokenLength: tokenUsed.length,
           textPreview: text.slice(0, 100),
         } as any,
         error: `sendPrivateReply failed: ${error}`,
