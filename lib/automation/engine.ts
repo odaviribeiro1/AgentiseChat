@@ -239,23 +239,28 @@ async function evaluateAndRun(
     contactId: contact.id,
   })
 
-  // Executar o fluxo — fire and forget (não bloqueia o webhook)
-  // Decifrar o access_token antes de passar ao executor
+  // Executar o fluxo (await — necessário para Vercel serverless)
   const { decryptToken } = await import('@/lib/crypto/tokens')
   const accountWithPlainToken = {
     ...account,
     access_token: decryptToken(account.access_token),
   }
 
-  executeAutomationRun(run.id, firstStep.id, {
-    account: accountWithPlainToken,
-    contact,
-    allSteps: steps,
-    triggerPostTitle: event.comment!.postId,
-    triggerCommentId: run.trigger_event_id ?? undefined,
-  }).catch(err => {
+  try {
+    await executeAutomationRun(run.id, firstStep.id, {
+      account: accountWithPlainToken,
+      contact,
+      allSteps: steps,
+      triggerPostTitle: event.comment!.postId,
+      triggerCommentId: run.trigger_event_id ?? undefined,
+    })
+  } catch (err) {
     console.error('[Engine] Erro fatal no executor', { runId: run.id, err })
-  })
+    await debugLog('executor_error', {
+      runId: run.id,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
 }
 
 /**
