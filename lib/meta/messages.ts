@@ -106,6 +106,45 @@ export async function sendQuickReplies(
   return data
 }
 
+// ─── Quick Replies via Instagram API (graph.instagram.com + IGAA token) ───────
+// Usado após o Private Reply, quando o usuário responde e abre a janela de 24h.
+export async function sendQuickRepliesIg(
+  recipientIgId: string,
+  text: string,
+  buttons: Array<{ title: string; payload: string }>,
+  igAccessToken: string
+): Promise<MetaSendMessageResponse | null> {
+  if (buttons.length > 13) {
+    buttons = buttons.slice(0, 13)
+  }
+
+  const { data, error } = await graphApi<MetaSendMessageResponse>(
+    'https://graph.instagram.com/v21.0/me/messages',
+    {
+      method: 'POST',
+      accessToken: igAccessToken,
+      body: {
+        recipient: { id: recipientIgId },
+        message: {
+          text,
+          quick_replies: buttons.map(b => ({
+            content_type: 'text',
+            title: b.title.slice(0, 20),
+            payload: b.payload,
+          })),
+        },
+      },
+    }
+  )
+
+  if (error) {
+    console.error('[Messages] Falha ao enviar quick replies via IG API', { recipientIgId, error })
+    return null
+  }
+
+  return data
+}
+
 // ─── Botão CTA com link externo ───────────────────────────────────────────────
 export async function sendCtaButton(
   recipientIgId: string,

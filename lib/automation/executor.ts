@@ -129,7 +129,8 @@ async function updateRunStatus(
  */
 export async function resumeAutomationRun(
   contactId: string,
-  payloadOrText: string
+  payloadOrText: string,
+  isQuickReplyClick = false
 ): Promise<boolean> {
   const supabase = createServiceClient()
 
@@ -161,9 +162,12 @@ export async function resumeAutomationRun(
   const { data: accountRaw } = await supabase.from('accounts').select('*').eq('id', contact.account_id).single()
   if (!accountRaw) return false
 
-  // Decifrar token antes de usar no contexto de execução
+  // Decifrar tokens antes de usar
   const { decryptToken } = await import('@/lib/crypto/tokens')
   const account = { ...accountRaw, access_token: decryptToken(accountRaw.access_token) }
+  const igAccessToken = accountRaw.ig_access_token
+    ? decryptToken(accountRaw.ig_access_token)
+    : process.env.INSTAGRAM_DM_TOKEN
 
   // 4. Determinar o próximo step (com base nos filhos do current_step)
   const currentStep = steps.find(s => s.id === run.current_step_id)
@@ -174,21 +178,49 @@ export async function resumeAutomationRun(
   // Retomar diretamente sem triggerCommentId (agora o contato tem janela de 24h).
   if (currentStep.type !== 'quick_reply') {
     await updateRunStatus(run.id, 'running')
-    executeAutomationRun(run.id, currentStep.id, {
-      account,
-      contact,
-      allSteps: steps,
-      // SEM triggerCommentId — agora usa DM regular (janela de 24h aberta)
-    }).catch(err => {
+    try {
+      await executeAutomationRun(run.id, currentStep.id, {
+        account,
+        contact,
+        allSteps: steps,
+        igAccessToken,
+      })
+    } catch (err) {
       console.error('[Executor] Erro fatal no resume pós-Private Reply', err)
-    })
+    }
     return true
   }
 
-  // Filhos do step atual (quick_reply — lógica de branching)
+  // ── Quick Reply: verificar se precisa enviar botões reais ──────────────
+  // Se o usuário respondeu com texto livre (não clicou botão) E o run foi
+  // disparado por comentário → enviar quick replies com botões reais via IG API.
+  // Os botões reais só podem ser enviados via DM regular (não Private Reply).
+  if (!isQuickReplyClick && run.trigger_event_id) {
+    const config = currentStep.config as unknown as import('@/lib/supabase/types').QuickReplyStepConfig
+    const { interpolateVariables } = await import('./variables')
+    const text = interpolateVariables(config.text, { contact })
+
+    const { sendQuickRepliesIg } = await import('@/lib/meta/messages')
+    if (igAccessToken) {
+      const result = await sendQuickRepliesIg(
+        contact.instagram_user_id,
+        text,
+        config.buttons,
+        igAccessToken
+      )
+      if (result) {
+        console.log(`[Executor] Quick replies com botões reais enviados para contato ${contactId}`)
+      } else {
+        console.error(`[Executor] Falha ao enviar quick replies reais para contato ${contactId}`)
+      }
+    }
+    // Manter em waiting_reply — aguardar clique no botão
+    return true
+  }
+
+  // ── Quick Reply: branching por clique de botão ─────────────────────────
   const childSteps = steps.filter(s => s.parent_step_id === currentStep.id)
   if (!childSteps.length) {
-    // Se não tem filhos, o fluxo termina.
     await updateRunStatus(run.id, 'completed')
     return true
   }
@@ -199,35 +231,37 @@ export async function resumeAutomationRun(
   )
 
   if (!nextStep) {
-    // Se não bate com nenhum branch, ignorar ou executar um branch default (sem branch_value)
     const defaultStep = childSteps.find(s => !s.branch_value)
     if (defaultStep) {
       await updateRunStatus(run.id, 'running')
-      executeAutomationRun(run.id, defaultStep.id, {
-        account,
-        contact,
-        allSteps: steps,
-        // SEM triggerCommentId — retomando via DM
-      }).catch(err => {
+      try {
+        await executeAutomationRun(run.id, defaultStep.id, {
+          account,
+          contact,
+          allSteps: steps,
+          igAccessToken,
+        })
+      } catch (err) {
         console.error('[Executor] Erro fatal no resume', err)
-      })
+      }
       return true
     }
-    return false // Nenhuma ramificação elegível
+    return false
   }
 
   // Retomando no branch encontrado
   await updateRunStatus(run.id, 'running')
 
-  // Fire and forget
-  executeAutomationRun(run.id, nextStep.id, {
-    account,
-    contact,
-    allSteps: steps,
-    // SEM triggerCommentId — retomando via DM
-  }).catch(err => {
+  try {
+    await executeAutomationRun(run.id, nextStep.id, {
+      account,
+      contact,
+      allSteps: steps,
+      igAccessToken,
+    })
+  } catch (err) {
     console.error('[Executor] Erro fatal no executor durante resume:', err)
-  })
+  }
 
   return true
 }

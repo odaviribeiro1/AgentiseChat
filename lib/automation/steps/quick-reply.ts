@@ -14,10 +14,9 @@ export async function executeQuickReplyStep(
   let result
   if (ctx.triggerCommentId && ctx.isFirstMessage) {
     const { sendPrivateReply } = await import('@/lib/meta/messages')
-    // Fallback: private_replies não suporta botões. Enviamos o texto e as opções como texto.
-    const options = config.buttons.map(b => `• ${b.title}`).join('\n')
-    const fallbackText = `${text}\n\n${options}\n\n(Dica: Responda a esta mensagem com a opção desejada!)`
-    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token, ctx.igAccessToken)
+    // Private Reply só aceita texto puro — enviar apenas o texto configurado.
+    // Os botões reais serão enviados quando o usuário responder (via resumeAutomationRun).
+    result = await sendPrivateReply(ctx.triggerCommentId, text, ctx.account.access_token, ctx.igAccessToken)
   } else {
     result = await sendQuickReplies(
       ctx.contact.instagram_user_id,

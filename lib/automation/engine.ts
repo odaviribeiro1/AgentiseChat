@@ -72,8 +72,9 @@ export async function processAutomationEvent(
   if (event.type === 'dm_text' || event.type === 'dm_quick_reply') {
     const { resumeAutomationRun } = await import('./executor')
     const payloadOrText = event.message?.quickReplyPayload || event.message?.text || ''
+    const isQuickReplyClick = !!event.message?.quickReplyPayload
 
-    const resumed = await resumeAutomationRun(contact.id, payloadOrText)
+    const resumed = await resumeAutomationRun(contact.id, payloadOrText, isQuickReplyClick)
     if (resumed) {
       await debugLog('flow_resumed', { contactId: contact.id })
       return
