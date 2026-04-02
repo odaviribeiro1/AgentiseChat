@@ -9,7 +9,7 @@ import { decryptToken } from '@/lib/crypto/tokens'
  * Endpoint de diagnóstico para verificar e re-subscribir webhooks.
  * Retorna status de cada etapa do pipeline.
  */
-export async function GET() {
+export async function GET(request: Request) {
   const results: Record<string, unknown> = {}
 
   try {
@@ -49,10 +49,40 @@ export async function GET() {
       is_active: account.is_active,
     }
 
-    // 3. Verificar se o token é válido
+    // 3. Verificar se o token é válido e suas permissões
     const plainToken = decryptToken(account.access_token)
     const tokenValid = await validateToken(plainToken)
     results.token_valid = tokenValid
+
+    // Debug do token: verificar scopes/permissões
+    const appId = process.env.META_APP_ID
+    const appSecret = process.env.META_APP_SECRET
+    if (appId && appSecret) {
+      const { data: tokenDebug } = await graphApi<{
+        data: { scopes: Array<{ permission: string }>; type: string; app_id: string; is_valid: boolean; expires_at: number }
+      }>(`debug_token?input_token=${plainToken}&access_token=${appId}|${appSecret}`)
+      results.token_debug = {
+        type: tokenDebug?.data?.type,
+        is_valid: tokenDebug?.data?.is_valid,
+        app_id: tokenDebug?.data?.app_id,
+        expires_at: tokenDebug?.data?.expires_at,
+        scopes: tokenDebug?.data?.scopes?.map(s => s.permission),
+      }
+    }
+
+    // Teste direto de private_reply com um commentId recente
+    const testCommentId = new URL(request.url).searchParams.get('test_comment')
+    if (testCommentId) {
+      const { data: prData, error: prError, status: prStatus } = await graphApi<{ success: boolean }>(
+        `${testCommentId}/private_replies`,
+        {
+          method: 'POST',
+          body: { message: 'teste de private reply' },
+          accessToken: plainToken,
+        }
+      )
+      results.private_reply_test = { commentId: testCommentId, data: prData, error: prError, status: prStatus }
+    }
 
     if (!tokenValid) {
       results.token_error = 'Token inválido ou expirado — reconecte a conta em /conexao'
