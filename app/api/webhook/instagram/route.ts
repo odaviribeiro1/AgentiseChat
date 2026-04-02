@@ -70,16 +70,31 @@ export async function POST(request: NextRequest) {
 
   // 5. Verificar assinatura HMAC
   if (!isValid) {
-    console.warn('[Webhook] Assinatura HMAC inválida — ignorando processamento')
+    await supabase.from('webhook_events').insert({
+      event_type: 'hmac_failed',
+      payload: {
+        signatureReceived: signature,
+        hasAppSecret: !!process.env.META_APP_SECRET,
+        appSecretPrefix: process.env.META_APP_SECRET?.slice(0, 4) ?? 'NOT_SET',
+        bodyLength: rawBody.length,
+        bodyPreview: rawBody.slice(0, 200),
+      } as any,
+      error: 'HMAC inválido — processamento bloqueado',
+    })
     return new NextResponse('OK', { status: 200 })
   }
+
+  // 5b. HMAC passou — logar confirmação
+  await supabase.from('webhook_events').insert({
+    event_type: 'hmac_passed',
+    payload: { entries: payload.entry?.length ?? 0 } as any,
+  })
 
   // 6. Despachar processamento
   let events: NormalizedWebhookEvent[] = []
   try {
     events = parseWebhookPayload(payload)
   } catch (parseErr) {
-    console.error('[Webhook] CRASH no parseWebhookPayload', parseErr)
     await supabase.from('webhook_events').insert({
       event_type: 'parse_error',
       payload: { body: payload, error: parseErr instanceof Error ? parseErr.message : String(parseErr) } as any,
@@ -87,18 +102,21 @@ export async function POST(request: NextRequest) {
     })
   }
 
+  // Logar resultado do parsing
+  await supabase.from('webhook_events').insert({
+    event_type: 'parse_result',
+    payload: {
+      eventsCount: events.length,
+      eventTypes: events.map(e => e.type),
+      eventSenders: events.map(e => e.senderIgId),
+    } as any,
+  })
+
   if (events.length > 0) {
     Promise.allSettled(
       events.map(event => processWebhookEvent(supabase, event, payload))
     ).catch(err => {
       console.error('[Webhook] Erro no processamento assíncrono', err)
-    })
-  } else {
-    // Nenhum evento reconhecido — logar para debug
-    await supabase.from('webhook_events').insert({
-      event_type: 'no_events_parsed',
-      payload: { body: payload, entries: payload.entry?.length ?? 0 } as any,
-      error: 'parseWebhookPayload retornou 0 eventos',
     })
   }
 
