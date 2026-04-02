@@ -166,7 +166,7 @@ export async function subscribeAppToPage(
         subscribed_fields: [
           'messages',
           'messaging_postbacks',
-          'comments',
+          'feed',
           'message_deliveries',
           'message_reads'
         ].join(',')
