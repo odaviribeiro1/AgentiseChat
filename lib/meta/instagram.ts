@@ -164,11 +164,7 @@ export async function subscribeAppToPage(
       accessToken: pageAccessToken,
       body: {
         subscribed_fields: [
-          'messages',
-          'messaging_postbacks',
           'feed',
-          'message_deliveries',
-          'message_reads'
         ].join(',')
       }
     }
