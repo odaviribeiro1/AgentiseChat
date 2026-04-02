@@ -99,31 +99,22 @@ export async function GET(request: NextRequest) {
 
           if (!comments.length) continue
 
-          // 5. Filtrar comentários já processados
-          //    Buscar TODOS os poll_processed (sem .in() que pode ter comportamento inesperado)
-          const { data: existingRuns, error: filterError } = await supabase
-            .from('webhook_events')
-            .select('instagram_user_id')
-            .eq('event_type', 'poll_processed')
-
-          const processedIds = new Set(
-            (existingRuns ?? [])
-              .map(r => r.instagram_user_id)
-              .filter((id): id is string => id !== null)
-          )
-
-          const newComments = comments.filter(c => !processedIds.has(c.id))
+          // 5. Filtrar: só processar comentários dos últimos 10 minutos
+          //    O anti-spam do engine (canSendToContact) previne duplicatas
+          const cutoff = new Date(Date.now() - 10 * 60 * 1000)
+          const recentComments = comments.filter(c => new Date(c.timestamp) > cutoff)
 
           debug.push({
-            step: 'filter_result',
+            step: 'filter_recent',
             postId,
-            totalPollProcessed: existingRuns?.length ?? 0,
-            filterError: filterError?.message,
-            matchedProcessed: comments.length - newComments.length,
-            newComments: newComments.length,
+            totalComments: comments.length,
+            recentComments: recentComments.length,
+            cutoff: cutoff.toISOString(),
           })
 
-          if (!newComments.length) continue
+          if (!recentComments.length) continue
+
+          const newComments = recentComments
 
           // 6. Processar cada comentário novo
           for (const comment of newComments) {
@@ -160,18 +151,12 @@ export async function GET(request: NextRequest) {
               totalErrors++
             }
 
-            // Marcar como processado (evitar reprocessamento)
-            await supabase.from('webhook_events').insert({
-              event_type: 'poll_processed',
-              instagram_user_id: comment.id,
-              payload: {
-                commentId: comment.id,
-                postId,
-                senderIgId: comment.from.id,
-                text: comment.text,
-              } as any,
-              processed: true,
-              processed_at: new Date().toISOString(),
+            // Log do processamento (para debug)
+            debug.push({
+              step: 'comment_processed',
+              commentId: comment.id,
+              text: comment.text.slice(0, 50),
+              from: comment.from?.id,
             })
           }
         } catch (err) {
