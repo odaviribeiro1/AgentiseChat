@@ -77,6 +77,35 @@ export async function getInstagramProfile(
 }
 
 /**
+ * Busca comentários recentes de um post/reel do Instagram.
+ * Usado pelo cron de polling como alternativa a webhooks.
+ */
+export interface InstagramComment {
+  id: string
+  text: string
+  timestamp: string
+  from: { id: string; username?: string }
+}
+
+export async function getRecentComments(
+  mediaId: string,
+  accessToken: string,
+  limit = 50
+): Promise<InstagramComment[]> {
+  const { data, error } = await graphApi<{ data: InstagramComment[] }>(
+    `${mediaId}/comments?fields=id,text,timestamp,from{id,username}&limit=${limit}`,
+    { accessToken }
+  )
+
+  if (error || !data?.data) {
+    console.error('[Instagram] Falha ao buscar comentários', { mediaId, error })
+    return []
+  }
+
+  return data.data
+}
+
+/**
  * Busca os posts e reels mais recentes da conta, além de stories ativos.
  * Usado para selecionar o post no trigger da automação.
  */
