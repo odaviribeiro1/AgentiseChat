@@ -1,8 +1,11 @@
 import { graphApi } from './client'
 import type { MetaSendMessageResponse } from './types'
 
+// Instagram Messaging API usa graph.instagram.com (não graph.facebook.com)
+const IG_API_BASE = 'https://graph.instagram.com/v21.0'
+
 const messagesEndpoint = (senderIgId?: string) =>
-  senderIgId ? `${senderIgId}/messages` : 'me/messages'
+  senderIgId ? `${IG_API_BASE}/${senderIgId}/messages` : `${IG_API_BASE}/me/messages`
 
 // ─── Texto simples ────────────────────────────────────────────────────────────
 export async function sendTextMessage(
