@@ -70,18 +70,32 @@ export async function GET(request: Request) {
       }
     }
 
-    // Teste direto de private_reply com um commentId recente
+    // Teste direto de private_reply com Page Token
     const testCommentId = new URL(request.url).searchParams.get('test_comment')
     if (testCommentId) {
-      const { data: prData, error: prError, status: prStatus } = await graphApi<{ success: boolean }>(
-        `${testCommentId}/private_replies`,
-        {
-          method: 'POST',
-          body: { message: 'teste de private reply' },
-          accessToken: plainToken,
-        }
+      // Buscar Page Token (private_replies exige Page Token, não User Token)
+      const { data: pagesForTest } = await graphApi<{ data: Array<{ id: string; access_token: string; name: string }> }>(
+        'me/accounts?fields=id,access_token,name',
+        { accessToken: plainToken }
       )
-      results.private_reply_test = { commentId: testCommentId, data: prData, error: prError, status: prStatus }
+      const pageToken = pagesForTest?.data?.[0]?.access_token
+      results.page_token_for_test = {
+        found: !!pageToken,
+        page_name: pagesForTest?.data?.[0]?.name,
+        tokenPrefix: pageToken?.slice(0, 10),
+      }
+
+      if (pageToken) {
+        const { data: prData, error: prError, status: prStatus } = await graphApi<{ success: boolean }>(
+          `${testCommentId}/private_replies`,
+          {
+            method: 'POST',
+            body: { message: 'teste de private reply' },
+            accessToken: pageToken,
+          }
+        )
+        results.private_reply_test = { commentId: testCommentId, data: prData, error: prError, status: prStatus }
+      }
     }
 
     if (!tokenValid) {

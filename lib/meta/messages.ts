@@ -168,20 +168,33 @@ export async function replyToComment(
   return data
 }
 // ─── Resposta privada via comentário (Private Reply) ───────────────────────
-// Usa /{comment-id}/private_replies — requer apenas instagram_manage_comments.
-// Diferente de /me/messages que requer instagram_manage_messages (capability separada).
+// Usa /{comment-id}/private_replies — requer Page Access Token + instagram_manage_comments.
+// O User Token não funciona aqui — precisamos do Page Token.
 export async function sendPrivateReply(
   commentId: string,
   text: string,
   accessToken?: string,
   _senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
+  // private_replies requer Page Token, não User Token.
+  // Buscar o Page Token via me/accounts usando o User Token.
+  const { data: pagesData } = await graphApi<{ data: Array<{ id: string; access_token: string }> }>(
+    'me/accounts?fields=id,access_token',
+    { accessToken }
+  )
+
+  const pageToken = pagesData?.data?.[0]?.access_token
+  if (!pageToken) {
+    console.error('[Messages] Não foi possível obter Page Token para private_replies')
+    return null
+  }
+
   const { data, error, status } = await graphApi<MetaSendMessageResponse>(
     `${commentId}/private_replies`,
     {
       method: 'POST',
       body: { message: text },
-      accessToken,
+      accessToken: pageToken,
     }
   )
 
