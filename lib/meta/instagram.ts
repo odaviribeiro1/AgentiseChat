@@ -151,10 +151,13 @@ export async function getUserPages(accessToken: string): Promise<PageAccount[]> 
  * Inscreve o App para receber webhooks de uma página específica.
  * Essencial para que o Meta envie eventos de mensagens e comentários.
  */
-export async function subscribeAppToPage(pageId: string, pageAccessToken: string): Promise<boolean> {
+export async function subscribeAppToPage(
+  pageId: string,
+  pageAccessToken: string
+): Promise<{ success: boolean; error?: string }> {
   console.log(`[Instagram] Inscrevendo App na página ${pageId}...`)
-  
-  const { data, error } = await graphApi<{ success: boolean }>(
+
+  const { data, error, status } = await graphApi<{ success: boolean }>(
     `${pageId}/subscribed_apps`,
     {
       method: 'POST',
@@ -172,12 +175,12 @@ export async function subscribeAppToPage(pageId: string, pageAccessToken: string
   )
 
   if (error || !data?.success) {
-    console.error(`[Instagram] Falha ao inscrever App na página ${pageId}`, error)
-    return false
+    console.error(`[Instagram] Falha ao inscrever App na página ${pageId}`, { error, status })
+    return { success: false, error: error ?? `HTTP ${status}` }
   }
 
   console.log(`[Instagram] App inscrito com sucesso na página ${pageId}`)
-  return true
+  return { success: true }
 }
 
 /**

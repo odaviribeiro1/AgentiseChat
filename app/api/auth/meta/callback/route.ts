@@ -80,8 +80,8 @@ export async function GET(request: NextRequest) {
   
   if (linkedPage) {
     console.log(`[OAuth Callback] Página vinculada encontrada: ${linkedPage.name} (${linkedPage.id})`)
-    const subscribed = await subscribeAppToPage(linkedPage.id, linkedPage.access_token)
-    if (subscribed) {
+    const subResult = await subscribeAppToPage(linkedPage.id, linkedPage.access_token)
+    if (subResult.success) {
       webhookVerifiedAt = new Date().toISOString()
     }
   } else {

@@ -105,14 +105,15 @@ export async function GET() {
       return NextResponse.json(results)
     }
 
-    const subscribed = await subscribeAppToPage(linkedPage.id, linkedPage.access_token)
+    const subResult = await subscribeAppToPage(linkedPage.id, linkedPage.access_token)
     results.subscription = {
       page_id: linkedPage.id,
       page_name: linkedPage.name,
-      subscribed,
+      subscribed: subResult.success,
+      error: subResult.error,
     }
 
-    if (subscribed) {
+    if (subResult.success) {
       await supabase
         .from('accounts')
         .update({ webhook_verified_at: new Date().toISOString() })
@@ -140,7 +141,7 @@ export async function GET() {
 
     results.total_webhook_events = count
 
-    results.status = subscribed ? 'OK — webhook re-subscribed' : 'FALHA na re-subscription'
+    results.status = subResult.success ? 'OK — webhook re-subscribed' : 'FALHA na re-subscription'
 
   } catch (err) {
     results.fatal_error = err instanceof Error ? err.message : String(err)
