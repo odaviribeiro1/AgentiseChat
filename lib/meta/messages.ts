@@ -174,7 +174,7 @@ export async function sendPrivateReply(
   accessToken?: string,
   senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
-  const { data, error } = await graphApi<MetaSendMessageResponse>(
+  const { data, error, status } = await graphApi<MetaSendMessageResponse>(
     messagesEndpoint(senderIgId),
     {
       method: 'POST',
@@ -187,7 +187,24 @@ export async function sendPrivateReply(
   )
 
   if (error) {
-    console.error('[Messages] Falha ao enviar resposta privada', { commentId, error })
+    console.error('[Messages] Falha ao enviar resposta privada', { commentId, error, status })
+    // Logar erro no banco para diagnóstico
+    try {
+      const { createServiceClient } = await import('@/lib/supabase/server')
+      const supabase = createServiceClient()
+      await supabase.from('webhook_events').insert({
+        event_type: 'send_error',
+        payload: {
+          function: 'sendPrivateReply',
+          commentId,
+          senderIgId,
+          error,
+          status,
+          textPreview: text.slice(0, 100),
+        } as any,
+        error: `sendPrivateReply failed: ${error}`,
+      })
+    } catch { /* não falhar por causa do log */ }
     return null
   }
 
