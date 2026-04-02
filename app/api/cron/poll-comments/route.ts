@@ -100,15 +100,16 @@ export async function GET(request: NextRequest) {
           if (!comments.length) continue
 
           // 5. Filtrar comentários já processados
-          const commentIds = comments.map(c => c.id)
-          const { data: existingRuns } = await supabase
+          //    Buscar TODOS os poll_processed (sem .in() que pode ter comportamento inesperado)
+          const { data: existingRuns, error: filterError } = await supabase
             .from('webhook_events')
             .select('instagram_user_id')
             .eq('event_type', 'poll_processed')
-            .in('instagram_user_id', commentIds)
 
           const processedIds = new Set(
-            existingRuns?.map(r => r.instagram_user_id) ?? []
+            (existingRuns ?? [])
+              .map(r => r.instagram_user_id)
+              .filter((id): id is string => id !== null)
           )
 
           const newComments = comments.filter(c => !processedIds.has(c.id))
@@ -116,7 +117,9 @@ export async function GET(request: NextRequest) {
           debug.push({
             step: 'filter_result',
             postId,
-            alreadyProcessed: processedIds.size,
+            totalPollProcessed: existingRuns?.length ?? 0,
+            filterError: filterError?.message,
+            matchedProcessed: comments.length - newComments.length,
             newComments: newComments.length,
           })
 
