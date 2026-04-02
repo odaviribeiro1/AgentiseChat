@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
   let totalProcessed = 0
   let totalTriggered = 0
   let totalErrors = 0
+  const debug: Record<string, unknown>[] = []
 
   for (const account of accounts) {
     try {
@@ -46,6 +47,13 @@ export async function GET(request: NextRequest) {
         .eq('account_id', account.id)
         .eq('status', 'active')
         .eq('trigger_type', 'comment_keyword')
+
+      debug.push({
+        step: 'automations_query',
+        account: account.instagram_username,
+        found: automations?.length ?? 0,
+        names: automations?.map(a => a.name),
+      })
 
       if (!automations?.length) continue
 
@@ -58,7 +66,6 @@ export async function GET(request: NextRequest) {
         if (config.apply_to === 'specific_post' && config.post_id) {
           postIds.add(config.post_id)
         }
-        // Para 'all_posts', buscamos os posts recentes da conta (abaixo)
       }
 
       const hasAllPostsAutomation = automations.some(a => {
@@ -66,7 +73,6 @@ export async function GET(request: NextRequest) {
         return c.apply_to === 'all_posts'
       })
 
-      // Se alguma automação é para all_posts, buscar posts recentes
       if (hasAllPostsAutomation) {
         const { getInstagramPosts } = await import('@/lib/meta/instagram')
         const { posts } = await getInstagramPosts(account.instagram_user_id, plainToken, 10)
@@ -75,12 +81,22 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      debug.push({ step: 'post_ids', postIds: Array.from(postIds) })
+
       if (postIds.size === 0) continue
 
       // 4. Para cada post, buscar comentários recentes
       for (const postId of postIds) {
         try {
           const comments = await getRecentComments(postId, plainToken, 50)
+
+          debug.push({
+            step: 'fetch_comments',
+            postId,
+            commentsFound: comments.length,
+            sample: comments.slice(0, 3).map(c => ({ id: c.id, text: c.text, from: c.from?.id })),
+          })
+
           if (!comments.length) continue
 
           // 5. Filtrar comentários já processados
@@ -162,5 +178,5 @@ export async function GET(request: NextRequest) {
   }
 
   console.log(`[Cron/PollComments] ${totalProcessed} comentários, ${totalTriggered} automações, ${totalErrors} erros`)
-  return NextResponse.json({ processed: totalProcessed, triggered: totalTriggered, errors: totalErrors })
+  return NextResponse.json({ processed: totalProcessed, triggered: totalTriggered, errors: totalErrors, debug })
 }
