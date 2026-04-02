@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getUserPages, subscribeAppToPage, validateToken } from '@/lib/meta/instagram'
+import { graphApi } from '@/lib/meta/client'
 import { decryptToken } from '@/lib/crypto/tokens'
 
 /**
@@ -68,10 +69,36 @@ export async function GET() {
       ig_id: p.instagram_business_account?.id,
     }))
 
-    // 5. Re-subscribir a página vinculada
-    const linkedPage = pages.find(
+    // 5. Tentar encontrar a página vinculada ao Instagram
+    //    Primeiro tenta match direto, senão faz query individual por página
+    let linkedPage = pages.find(
       p => p.instagram_business_account?.id === account.instagram_user_id
     )
+
+    if (!linkedPage) {
+      // A API me/accounts nem sempre retorna instagram_business_account inline.
+      // Fazer query individual para cada página (como getInstagramProfile faz).
+      results.ig_link_fallback = 'Tentando query individual por página...'
+      for (const page of pages) {
+        const { data: pageData } = await graphApi<{ instagram_business_account?: { id: string } }>(
+          `${page.id}?fields=instagram_business_account`,
+          { accessToken: plainToken }
+        )
+        if (pageData?.instagram_business_account?.id === account.instagram_user_id) {
+          linkedPage = page
+          results.ig_link_fallback = `Encontrado via query individual: page ${page.id}`
+          break
+        }
+        // Logar o que retornou para debug
+        results[`page_${page.id}_ig_check`] = pageData
+      }
+    }
+
+    if (!linkedPage && pages.length === 1) {
+      // Se só tem 1 página, tentar subscribir de qualquer forma
+      results.ig_link_fallback = 'Única página disponível — tentando subscribir mesmo sem link IG visível'
+      linkedPage = pages[0]
+    }
 
     if (!linkedPage) {
       results.subscription = { error: 'Nenhuma página vinculada ao Instagram encontrada' }
@@ -86,7 +113,6 @@ export async function GET() {
     }
 
     if (subscribed) {
-      // Atualizar webhook_verified_at
       await supabase
         .from('accounts')
         .update({ webhook_verified_at: new Date().toISOString() })
