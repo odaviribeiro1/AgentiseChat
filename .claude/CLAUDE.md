@@ -832,6 +832,57 @@ Estas regras nunca podem ser violadas, independente da task:
 
 ---
 
+## ⚠️ Decisões Técnicas Tomadas
+
+> Lições aprendidas durante a implementação dos Módulos 1–5.
+> **Nunca** violar estas regras nos módulos seguintes.
+
+### Vercel Serverless — nunca fire-and-forget
+
+A app roda na **Vercel** (serverless). Funções são encerradas imediatamente após o `return`.
+- Usar `after()` do `next/server` (Next.js 16+) para trabalho pós-response no webhook handler
+- **Nunca** usar `Promise.allSettled()` ou `.catch()` sem `await` em API routes
+- Todo processamento assíncrono deve completar antes do return ou estar dentro de `after()`
+
+### Dual Token — EAA (Facebook) + IGAA (Instagram)
+
+O OAuth gera um **Facebook Token (EAA...)** que funciona em `graph.facebook.com` para leitura (perfil, posts, comentários, pages). A **Instagram Messaging API** (`graph.instagram.com/me/messages`) exige um **Instagram Token (IGAA...)** separado.
+
+| Token | Coluna no banco | Domínio | Uso |
+|-------|----------------|---------|-----|
+| EAA (Facebook) | `accounts.access_token` | `graph.facebook.com` | Leitura: posts, comentários, pages, perfil |
+| IGAA (Instagram) | `accounts.ig_access_token` | `graph.instagram.com` | Envio de DMs: `/me/messages` |
+
+- `sendPrivateReply()` usa o IGAA via `ctx.igAccessToken`
+- Demais funções de leitura usam o EAA via `ctx.account.access_token`
+- Cron `/api/cron/refresh-ig-token` renova o IGAA antes de expirar (60 dias)
+- Cron `/api/cron/token-refresh` renova o EAA (já existia)
+
+### App em Development Mode — polling em vez de webhooks
+
+Com o app Meta em modo **Development**, webhooks de comentários do Instagram **não são entregues** (mesmo para testers). Workaround:
+- Cron `/api/cron/poll-comments` busca comentários recentes via Graph API a cada 1–2 minutos
+- Filtra por timestamp (últimos 10 min) e dispara `processAutomationEvent()` para cada comentário novo
+- Anti-spam do engine (`canSendToContact`) previne duplicatas
+- Quando o app for para **Live/Published**, os webhooks assumem e o polling pode ser desligado
+
+### upsertContact — comentário NÃO abre janela de 24h
+
+Um comentário **não** equivale a uma mensagem inbound. A janela de 24h (`window_expires_at`) só deve ser atualizada quando o contato envia uma **DM direta** (eventos `dm_text`, `dm_quick_reply`, etc.).
+- `upsertContact(account, senderIgId, eventType)` recebe o tipo de evento
+- Para comentários: cria o contato mas **não** define `last_message_at` nem `window_expires_at`
+- Para DMs: define ambos normalmente
+
+### Executor pausa após Private Reply
+
+Após enviar o Private Reply (primeira mensagem via comentário), o executor **pausa** o run com status `waiting_reply`:
+- O contato precisa **responder à DM** para abrir a janela de 24h
+- Somente após a resposta, `resumeAutomationRun()` retoma o fluxo
+- O resume **não** passa `triggerCommentId` — a partir dali, usa DM regular
+- Automações de 1 step completam normalmente sem pausar (não há próximo step)
+
+---
+
 ## 🔄 Fluxo de Desenvolvimento
 
 ### Branches
