@@ -19,6 +19,8 @@ export type Database = {
           access_token: string
           created_at: string | null
           id: string
+          ig_access_token: string | null
+          ig_token_expires_at: string | null
           instagram_name: string | null
           instagram_pic_url: string | null
           instagram_user_id: string
@@ -33,6 +35,8 @@ export type Database = {
           access_token: string
           created_at?: string | null
           id?: string
+          ig_access_token?: string | null
+          ig_token_expires_at?: string | null
           instagram_name?: string | null
           instagram_pic_url?: string | null
           instagram_user_id: string
@@ -47,6 +51,8 @@ export type Database = {
           access_token?: string
           created_at?: string | null
           id?: string
+          ig_access_token?: string | null
+          ig_token_expires_at?: string | null
           instagram_name?: string | null
           instagram_pic_url?: string | null
           instagram_user_id?: string

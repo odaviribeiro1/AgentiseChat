@@ -18,7 +18,7 @@ export async function executeImageMessageStep(
     const { sendPrivateReply } = await import('@/lib/meta/messages')
     // Fallback: private_replies não suporta imagens. Enviamos a legenda e o link.
     const fallbackText = `${caption || 'Aqui está a imagem que você pediu:'}\n\n${config.image_url}\n\n(Dica: Responda a esta mensagem para liberar mais recursos interativos!)`
-    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token, ctx.account.instagram_user_id)
+    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token, ctx.igAccessToken)
   } else {
     result = await sendImageMessage(
       ctx.contact.instagram_user_id,

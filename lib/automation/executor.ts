@@ -11,6 +11,7 @@ export interface StepExecutionContext {
   triggerPostTitle?: string     // título/ID do post que disparou o trigger
   triggerCommentId?: string     // ID do comentário para Private Replies
   isFirstMessage?: boolean      // identifica se é a primeira mensagem do fluxo
+  igAccessToken?: string        // Instagram Token (IGAA) para graph.instagram.com messaging
 }
 
 /**

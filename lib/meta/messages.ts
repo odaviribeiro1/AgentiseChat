@@ -168,17 +168,17 @@ export async function replyToComment(
   return data
 }
 // ─── Resposta privada via comentário (Private Reply) ───────────────────────
-// Usa graph.instagram.com/me/messages com Instagram Token (IGAA...).
-// O Facebook Token (EAA...) NÃO funciona em graph.instagram.com.
+// Usa graph.instagram.com/me/messages com Instagram Token (IGAA).
+// O 4o parametro (igAccessToken) é o token IGAA do banco ou env var.
 export async function sendPrivateReply(
   commentId: string,
   text: string,
   _accessToken?: string,
-  _senderIgId?: string
+  igAccessToken?: string
 ): Promise<MetaSendMessageResponse | null> {
-  const igToken = process.env.INSTAGRAM_DM_TOKEN
+  const igToken = igAccessToken ?? process.env.INSTAGRAM_DM_TOKEN
   if (!igToken) {
-    console.error('[Messages] INSTAGRAM_DM_TOKEN não configurado')
+    console.error('[Messages] Instagram Token (IGAA) não disponível — configure ig_access_token na conta ou INSTAGRAM_DM_TOKEN no env')
     return null
   }
 
@@ -205,7 +205,7 @@ export async function sendPrivateReply(
         payload: {
           function: 'sendPrivateReply',
           commentId,
-          senderIgId: _senderIgId,
+          igTokenUsed: !!igToken,
           error,
           status,
           endpoint: `${commentId}/private_replies`,

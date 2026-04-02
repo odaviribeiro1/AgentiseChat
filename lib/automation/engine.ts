@@ -246,6 +246,11 @@ async function evaluateAndRun(
     access_token: decryptToken(account.access_token),
   }
 
+  // Decriptar o Instagram Token (IGAA) para messaging via graph.instagram.com
+  const igAccessToken = account.ig_access_token
+    ? decryptToken(account.ig_access_token)
+    : process.env.INSTAGRAM_DM_TOKEN // fallback para env var
+
   try {
     await executeAutomationRun(run.id, firstStep.id, {
       account: accountWithPlainToken,
@@ -253,6 +258,7 @@ async function evaluateAndRun(
       allSteps: steps,
       triggerPostTitle: event.comment!.postId,
       triggerCommentId: run.trigger_event_id ?? undefined,
+      igAccessToken,
     })
   } catch (err) {
     console.error('[Engine] Erro fatal no executor', { runId: run.id, err })

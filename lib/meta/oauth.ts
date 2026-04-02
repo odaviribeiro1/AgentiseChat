@@ -133,3 +133,35 @@ export function calculateTokenExpiry(expiresInSeconds: number): Date {
   return new Date(Date.now() + expiresInSeconds * 1000)
 }
 
+/**
+ * Renova um Instagram Token (IGAA) de longa duração.
+ * Usa o endpoint graph.instagram.com/refresh_access_token.
+ * O token deve ainda estar válido (não expirado) para ser renovado.
+ */
+export async function refreshIgToken(
+  igToken: string
+): Promise<{ data: { access_token: string; expires_in: number } | null; error: string | null }> {
+  const params = new URLSearchParams({
+    grant_type: 'ig_refresh_token',
+    access_token: igToken,
+  })
+
+  try {
+    const response = await fetch(
+      `https://graph.instagram.com/refresh_access_token?${params.toString()}`
+    )
+    const json = await response.json()
+
+    if (!response.ok) {
+      const errMsg = json?.error?.message ?? `HTTP ${response.status}`
+      console.error('[OAuth] Falha ao renovar IG token', { errMsg })
+      return { data: null, error: errMsg }
+    }
+
+    return { data: { access_token: json.access_token, expires_in: json.expires_in }, error: null }
+  } catch (err) {
+    console.error('[OAuth] Erro de rede ao renovar IG token', err)
+    return { data: null, error: 'Falha de rede ao renovar IG token' }
+  }
+}
+
