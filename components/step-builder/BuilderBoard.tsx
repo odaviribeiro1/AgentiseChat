@@ -27,7 +27,8 @@ import { AiStepForm } from './forms/AiStepForm'
 import { ConditionStepForm } from './forms/ConditionStepForm'
 import { TagStepForm } from './forms/TagStepForm'
 import { CtaButtonStepForm } from './forms/CtaButtonStepForm'
-import type { ConditionStepConfig, TagStepConfig, CtaButtonStepConfig } from '@/lib/supabase/types'
+import { ImageMessageStepForm } from './forms/ImageMessageStepForm'
+import type { ConditionStepConfig, TagStepConfig, CtaButtonStepConfig, ImageMessageStepConfig } from '@/lib/supabase/types'
 import { saveAutomationSteps } from '@/app/actions/step-builder'
 import { toast } from 'sonner'
 
@@ -215,6 +216,12 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
             {selectedStep?.type === 'tag' && (
               <TagStepForm
                 initialConfig={selectedStep.config as TagStepConfig}
+                onChange={(c) => updateStepConfig(selectedStep.id, c)}
+              />
+            )}
+            {selectedStep?.type === 'image_message' && (
+              <ImageMessageStepForm
+                initialConfig={selectedStep.config as ImageMessageStepConfig}
                 onChange={(c) => updateStepConfig(selectedStep.id, c)}
               />
             )}

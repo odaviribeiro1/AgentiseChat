@@ -30,7 +30,7 @@ const getDefaultConfig = (type: StepType): StepConfig => {
     case 'message':
       return { text: '' }
     case 'image_message':
-      return { image_url: '' }
+      return { image_url: '', caption: '' }
     case 'quick_reply':
       return { text: '', buttons: [] }
     case 'cta_button':
