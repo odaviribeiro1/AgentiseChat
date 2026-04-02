@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { verifyWebhookSignature, parseWebhookPayload } from '@/lib/meta/webhook'
 import { createServiceClient } from '@/lib/supabase/server'
 import { processAutomationEvent } from '@/lib/automation/engine'
@@ -30,12 +30,10 @@ export async function GET(request: NextRequest) {
 }
 
 // ─── POST: Recebimento de eventos da Meta ─────────────────────────────────────
+// IMPORTANTE: App roda na Vercel (serverless). Usar after() do Next.js 16 para
+// processamento pós-response — sem after(), a Vercel mata a função após o return.
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-
   // 1. Ler o body como texto puro ANTES de qualquer parse
-  //    O stream de um Request só pode ser consumido uma vez —
-  //    chamar request.json() primeiro impossibilitaria o cálculo do HMAC.
   let rawBody: string
   try {
     rawBody = await request.text()
@@ -43,86 +41,71 @@ export async function POST(request: NextRequest) {
     return new NextResponse('OK', { status: 200 })
   }
 
-  // 3. Parse do payload
+  // 2. Parse do payload
   let payload: MetaWebhookPayload
   try {
     payload = JSON.parse(rawBody) as MetaWebhookPayload
   } catch {
-    console.error('[Webhook] Payload inválido (não é JSON)')
     return new NextResponse('OK', { status: 200 })
   }
 
-  // 4. LOG DE DEPURAÇÃO: Salvar absolutamente tudo que chega (antes da assinatura)
-  const supabase = createServiceClient()
+  // 3. Verificar assinatura HMAC (síncrono — executa antes do response)
   const signature = request.headers.get('x-hub-signature-256')
   const isValid = verifyWebhookSignature(rawBody, signature)
 
+  // 4. Log do raw_incoming (await — executa antes do response)
+  const supabase = createServiceClient()
   await supabase.from('webhook_events').insert({
     event_type: 'raw_incoming',
-    payload: { 
-      body: payload, 
-      signature, 
+    payload: {
+      body: payload,
+      signature,
       isValid,
-      userAgent: request.headers.get('user-agent')
     } as any,
     error: isValid ? null : 'Assinatura HMAC inválida ou ausente',
   })
 
-  // 5. Verificar assinatura HMAC
   if (!isValid) {
-    await supabase.from('webhook_events').insert({
-      event_type: 'hmac_failed',
-      payload: {
-        signatureReceived: signature,
-        hasAppSecret: !!process.env.META_APP_SECRET,
-        appSecretPrefix: process.env.META_APP_SECRET?.slice(0, 4) ?? 'NOT_SET',
-        bodyLength: rawBody.length,
-        bodyPreview: rawBody.slice(0, 200),
-      } as any,
-      error: 'HMAC inválido — processamento bloqueado',
-    })
     return new NextResponse('OK', { status: 200 })
   }
 
-  // 5b. HMAC passou — logar confirmação
-  await supabase.from('webhook_events').insert({
-    event_type: 'hmac_passed',
-    payload: { entries: payload.entry?.length ?? 0 } as any,
+  // 5. Agendar processamento APÓS o response via after()
+  //    Vercel mantém a função viva até o callback completar.
+  after(async () => {
+    const supa = createServiceClient()
+
+    // 5a. Parse dos eventos
+    let events: NormalizedWebhookEvent[] = []
+    try {
+      events = parseWebhookPayload(payload)
+    } catch (parseErr) {
+      await supa.from('webhook_events').insert({
+        event_type: 'parse_error',
+        payload: { error: parseErr instanceof Error ? parseErr.message : String(parseErr) } as any,
+        error: `Parse crash: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`,
+      })
+      return
+    }
+
+    // 5b. Log do resultado do parsing
+    await supa.from('webhook_events').insert({
+      event_type: 'parse_result',
+      payload: {
+        eventsCount: events.length,
+        eventTypes: events.map(e => e.type),
+        eventSenders: events.map(e => e.senderIgId),
+      } as any,
+    })
+
+    if (events.length === 0) return
+
+    // 5c. Processar todos os eventos (AWAIT — garante que completa)
+    await Promise.allSettled(
+      events.map(event => processWebhookEvent(supa, event, payload))
+    )
   })
 
-  // 6. Despachar processamento
-  let events: NormalizedWebhookEvent[] = []
-  try {
-    events = parseWebhookPayload(payload)
-  } catch (parseErr) {
-    await supabase.from('webhook_events').insert({
-      event_type: 'parse_error',
-      payload: { body: payload, error: parseErr instanceof Error ? parseErr.message : String(parseErr) } as any,
-      error: `Parse crash: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`,
-    })
-  }
-
-  // Logar resultado do parsing
-  await supabase.from('webhook_events').insert({
-    event_type: 'parse_result',
-    payload: {
-      eventsCount: events.length,
-      eventTypes: events.map(e => e.type),
-      eventSenders: events.map(e => e.senderIgId),
-    } as any,
-  })
-
-  if (events.length > 0) {
-    Promise.allSettled(
-      events.map(event => processWebhookEvent(supabase, event, payload))
-    ).catch(err => {
-      console.error('[Webhook] Erro no processamento assíncrono', err)
-    })
-  }
-
-  const elapsed = Date.now() - startTime
-  console.log(`[Webhook] Respondido em ${elapsed}ms — ${events.length} evento(s)`)
-
+  // 6. Retornar 200 imediatamente (Meta exige resposta rápida)
   return new NextResponse('OK', { status: 200 })
 }
 
@@ -169,11 +152,13 @@ async function processWebhookEvent(
   // 4d. Marcar evento como processado no log
   await markEventProcessed(supabase, event.type, event.senderIgId)
 
-  // 4e. Despachar para o motor de automações (fire and forget)
+  // 4e. Despachar para o motor de automações (await — estamos dentro do after())
   if (event.type === 'comment' || event.type === 'dm_text' || event.type === 'dm_quick_reply') {
-    processAutomationEvent(event).catch(err => {
+    try {
+      await processAutomationEvent(event)
+    } catch (err) {
       console.error('[Webhook] Erro no motor de automações', { type: event.type, err })
-    })
+    }
   }
 
   console.log(`[Webhook] Evento ${event.type} processado — sender: ${event.senderIgId}`)
