@@ -15,13 +15,36 @@ import type { Json } from '@/lib/supabase/database.types'
 export async function processAutomationEvent(
   event: NormalizedWebhookEvent
 ): Promise<void> {
-  // Ignorar eventos irrelevantes
-  if (!['comment', 'dm_text', 'dm_quick_reply'].includes(event.type)) return
-
   const supabase = createServiceClient()
 
+  // Helper para logar debug no banco (visível no Supabase Dashboard)
+  const debugLog = async (stage: string, details: Record<string, unknown>) => {
+    console.log(`[Engine] ${stage}`, details)
+    try {
+      await supabase.from('webhook_events').insert({
+        event_type: `engine_debug:${stage}`,
+        instagram_user_id: event.senderIgId,
+        payload: { stage, ...details, eventType: event.type, accountIgId: event.accountIgId } as any,
+      })
+    } catch { /* não falhar por causa do log */ }
+  }
+
+  // Ignorar eventos irrelevantes
+  if (!['comment', 'dm_text', 'dm_quick_reply'].includes(event.type)) {
+    await debugLog('ignored_event_type', { type: event.type })
+    return
+  }
+
+  await debugLog('start', {
+    type: event.type,
+    accountIgId: event.accountIgId,
+    senderIgId: event.senderIgId,
+    commentText: event.comment?.text,
+    commentId: event.comment?.id,
+  })
+
   // 1. Encontrar a conta pelo instagram_user_id
-  const { data: account } = await supabase
+  const { data: account, error: accountError } = await supabase
     .from('accounts')
     .select('*')
     .eq('instagram_user_id', event.accountIgId)
@@ -29,38 +52,57 @@ export async function processAutomationEvent(
     .maybeSingle()
 
   if (!account) {
-    console.warn('[Engine] Conta não encontrada para evento', { accountIgId: event.accountIgId })
+    await debugLog('account_not_found', {
+      accountIgId: event.accountIgId,
+      dbError: accountError?.message,
+    })
     return
   }
 
+  await debugLog('account_found', { accountId: account.id, username: account.instagram_username })
+
   // 2. Upsert do contato que fez a interação
   const contact = await upsertContact(account, event.senderIgId, event.type)
-  if (!contact) return
+  if (!contact) {
+    await debugLog('contact_upsert_failed', { senderIgId: event.senderIgId })
+    return
+  }
 
   // Módulo 5: Tentar retomar fluxo existente se for mensagem (não comentário)
   if (event.type === 'dm_text' || event.type === 'dm_quick_reply') {
     const { resumeAutomationRun } = await import('./executor')
     const payloadOrText = event.message?.quickReplyPayload || event.message?.text || ''
-    
-    // Tenta retomar. Se retornar true, o fluxo seguiu. Caso contrário (não tinha nada esperando), pode cair na lógica de novo trigger (Módulo 2, dm_keyword, se houvesse)
+
     const resumed = await resumeAutomationRun(contact.id, payloadOrText)
     if (resumed) {
-      console.log('[Engine] Fluxo retomado com sucesso para contato', contact.id)
+      await debugLog('flow_resumed', { contactId: contact.id })
       return
     }
+    await debugLog('no_flow_to_resume', { contactId: contact.id })
   }
 
   // Se chegou aqui e é apenas um comentário, processa trigger de comentário
   if (event.type === 'comment' && event.comment) {
     // 3. Buscar automações ativas com trigger comment_keyword
-    const { data: automations } = await supabase
-    .from('automations')
-    .select('*')
-    .eq('account_id', account.id)
-    .eq('status', 'active')
-    .eq('trigger_type', 'comment_keyword')
+    const { data: automations, error: autoError } = await supabase
+      .from('automations')
+      .select('*')
+      .eq('account_id', account.id)
+      .eq('status', 'active')
+      .eq('trigger_type', 'comment_keyword')
 
-  if (!automations?.length) return
+    if (!automations?.length) {
+      await debugLog('no_active_automations', {
+        accountId: account.id,
+        dbError: autoError?.message,
+      })
+      return
+    }
+
+    await debugLog('automations_found', {
+      count: automations.length,
+      names: automations.map(a => a.name),
+    })
 
     // 4. Avaliar cada automação
     for (const automation of automations) {
@@ -82,12 +124,40 @@ async function evaluateAndRun(
   const supabase = createServiceClient()
   const config = automation.trigger_config as unknown as TriggerConfig
 
+  // Helper de debug persistente
+  const debugLog = async (stage: string, details: Record<string, unknown>) => {
+    console.log(`[Engine:evaluateAndRun] ${stage}`, details)
+    try {
+      await supabase.from('webhook_events').insert({
+        event_type: `engine_eval:${stage}`,
+        instagram_user_id: event.senderIgId,
+        payload: { stage, automationId: automation.id, automationName: automation.name, ...details } as any,
+      })
+    } catch { /* não falhar por causa do log */ }
+  }
+
   // Verificar keyword
-  if (!matchesKeyword(event.comment!.text, config)) return
+  const keywordMatch = matchesKeyword(event.comment!.text, config)
+  if (!keywordMatch) {
+    await debugLog('keyword_no_match', {
+      commentText: event.comment!.text,
+      keywords: config.keywords,
+      matchType: config.match_type,
+    })
+    return
+  }
+
+  await debugLog('keyword_matched', { commentText: event.comment!.text })
 
   // Verificar post específico (se configurado)
   if (config.apply_to === 'specific_post' && config.post_id) {
-    if (event.comment!.postId !== config.post_id) return
+    if (event.comment!.postId !== config.post_id) {
+      await debugLog('post_mismatch', {
+        expected: config.post_id,
+        received: event.comment!.postId,
+      })
+      return
+    }
   }
 
   // Verificar anti-spam
@@ -98,32 +168,37 @@ async function evaluateAndRun(
   })
 
   if (!spamCheck.allowed) {
-    console.log('[Engine] Anti-spam bloqueou envio', {
+    await debugLog('anti_spam_blocked', {
       reason: spamCheck.reason,
       contactId: contact.id,
-      automationId: automation.id,
     })
     return
   }
 
   // Buscar todos os steps da automação
-  const { data: steps } = await supabase
+  const { data: steps, error: stepsError } = await supabase
     .from('steps')
     .select('*')
     .eq('automation_id', automation.id)
     .order('position', { ascending: true })
 
   if (!steps?.length) {
-    console.warn('[Engine] Automação sem steps', { automationId: automation.id })
+    await debugLog('no_steps', { automationId: automation.id, dbError: stepsError?.message })
     return
   }
 
   // Encontrar o primeiro step (sem parent_step_id)
   const firstStep = steps.find(s => !s.parent_step_id)
   if (!firstStep) {
-    console.warn('[Engine] Primeiro step não encontrado', { automationId: automation.id })
+    await debugLog('no_first_step', { automationId: automation.id, stepsCount: steps.length })
     return
   }
+
+  await debugLog('creating_run', {
+    firstStepId: firstStep.id,
+    firstStepType: firstStep.type,
+    totalSteps: steps.length,
+  })
 
   // Criar o automation_run
   const { data: run, error: runError } = await supabase
@@ -140,9 +215,11 @@ async function evaluateAndRun(
     .single()
 
   if (runError || !run) {
-    console.error('[Engine] Falha ao criar automation_run', runError)
+    await debugLog('run_insert_failed', { error: runError?.message, code: runError?.code })
     return
   }
+
+  await debugLog('run_created', { runId: run.id })
 
   // Incrementar contador de runs na automação
   await supabase

@@ -75,13 +75,32 @@ export async function POST(request: NextRequest) {
   }
 
   // 6. Despachar processamento
-  const events = parseWebhookPayload(payload)
+  let events: NormalizedWebhookEvent[] = []
+  try {
+    events = parseWebhookPayload(payload)
+  } catch (parseErr) {
+    console.error('[Webhook] CRASH no parseWebhookPayload', parseErr)
+    await supabase.from('webhook_events').insert({
+      event_type: 'parse_error',
+      payload: { body: payload, error: parseErr instanceof Error ? parseErr.message : String(parseErr) } as any,
+      error: `Parse crash: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`,
+    })
+  }
 
-  Promise.allSettled(
-    events.map(event => processWebhookEvent(supabase, event, payload))
-  ).catch(err => {
-    console.error('[Webhook] Erro no processamento assíncrono', err)
-  })
+  if (events.length > 0) {
+    Promise.allSettled(
+      events.map(event => processWebhookEvent(supabase, event, payload))
+    ).catch(err => {
+      console.error('[Webhook] Erro no processamento assíncrono', err)
+    })
+  } else {
+    // Nenhum evento reconhecido — logar para debug
+    await supabase.from('webhook_events').insert({
+      event_type: 'no_events_parsed',
+      payload: { body: payload, entries: payload.entry?.length ?? 0 } as any,
+      error: 'parseWebhookPayload retornou 0 eventos',
+    })
+  }
 
   const elapsed = Date.now() - startTime
   console.log(`[Webhook] Respondido em ${elapsed}ms — ${events.length} evento(s)`)
