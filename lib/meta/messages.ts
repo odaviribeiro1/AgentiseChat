@@ -145,6 +145,96 @@ export async function sendQuickRepliesIg(
   return data
 }
 
+// ─── CTA Button via Instagram API (graph.instagram.com + IGAA token) ──────────
+export async function sendCtaButtonIg(
+  recipientIgId: string,
+  text: string,
+  buttonTitle: string,
+  url: string,
+  igAccessToken: string
+): Promise<MetaSendMessageResponse | null> {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(
+    'https://graph.instagram.com/v21.0/me/messages',
+    {
+      method: 'POST',
+      accessToken: igAccessToken,
+      body: {
+        recipient: { id: recipientIgId },
+        message: {
+          attachment: {
+            type: 'template',
+            payload: {
+              template_type: 'generic',
+              elements: [{
+                title: text.slice(0, 80),
+                buttons: [{
+                  type: 'web_url',
+                  url,
+                  title: buttonTitle.slice(0, 20),
+                }],
+              }],
+            },
+          },
+        },
+      },
+    }
+  )
+
+  if (error) {
+    console.error('[Messages] Falha ao enviar CTA button via IG API', { recipientIgId, error })
+    return null
+  }
+
+  return data
+}
+
+// ─── Imagem via Instagram API (graph.instagram.com + IGAA token) ──────────────
+export async function sendImageMessageIg(
+  recipientIgId: string,
+  imageUrl: string,
+  caption: string | undefined,
+  igAccessToken: string
+): Promise<MetaSendMessageResponse | null> {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(
+    'https://graph.instagram.com/v21.0/me/messages',
+    {
+      method: 'POST',
+      accessToken: igAccessToken,
+      body: {
+        recipient: { id: recipientIgId },
+        message: {
+          attachment: {
+            type: 'image',
+            payload: { url: imageUrl, is_reusable: true },
+          },
+        },
+      },
+    }
+  )
+
+  if (error) {
+    console.error('[Messages] Falha ao enviar imagem via IG API', { recipientIgId, error })
+    return null
+  }
+
+  // Enviar legenda como texto separado se existir
+  if (caption) {
+    await graphApi<MetaSendMessageResponse>(
+      'https://graph.instagram.com/v21.0/me/messages',
+      {
+        method: 'POST',
+        accessToken: igAccessToken,
+        body: {
+          recipient: { id: recipientIgId },
+          message: { text: caption },
+        },
+      }
+    )
+  }
+
+  return data
+}
+
 // ─── Botão CTA com link externo ───────────────────────────────────────────────
 export async function sendCtaButton(
   recipientIgId: string,

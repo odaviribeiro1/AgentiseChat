@@ -173,48 +173,78 @@ export async function resumeAutomationRun(
   const currentStep = steps.find(s => s.id === run.current_step_id)
   if (!currentStep) return false
 
-  // Se o run pausou após Private Reply (step atual NÃO é quick_reply),
-  // current_step_id já aponta para o próximo step a executar.
-  // Retomar diretamente sem triggerCommentId (agora o contato tem janela de 24h).
-  if (currentStep.type !== 'quick_reply') {
+  // ── Pós-Private Reply: re-enviar conteúdo real via DM regular ────────────
+  // Quando o run foi disparado por comentário (trigger_event_id existe) e o
+  // usuário respondeu com texto livre (não clicou botão), enviar o conteúdo
+  // real do step via graph.instagram.com (que só funciona via DM regular).
+  if (run.trigger_event_id && !isQuickReplyClick) {
+    const { interpolateVariables } = await import('./variables')
+
+    if (currentStep.type === 'quick_reply') {
+      // Enviar quick replies com botões reais
+      const config = currentStep.config as unknown as import('@/lib/supabase/types').QuickReplyStepConfig
+      const text = interpolateVariables(config.text, { contact })
+      const { sendQuickRepliesIg } = await import('@/lib/meta/messages')
+      if (igAccessToken) {
+        await sendQuickRepliesIg(contact.instagram_user_id, text, config.buttons, igAccessToken)
+      }
+      // Manter em waiting_reply — aguardar clique no botão
+      return true
+    }
+
+    if (currentStep.type === 'cta_button') {
+      // Enviar CTA button real
+      const config = currentStep.config as unknown as import('@/lib/supabase/types').CtaButtonStepConfig
+      const text = interpolateVariables(config.text, { contact })
+      const { sendCtaButtonIg } = await import('@/lib/meta/messages')
+      if (igAccessToken) {
+        await sendCtaButtonIg(contact.instagram_user_id, text, config.button_title, config.url, igAccessToken)
+      }
+      // CTA não tem branching — continuar o fluxo
+      const nextStep = steps.find(s => s.parent_step_id === currentStep.id && !s.branch_value)
+      if (nextStep) {
+        await updateRunStatus(run.id, 'running')
+        try {
+          await executeAutomationRun(run.id, nextStep.id, { account, contact, allSteps: steps, igAccessToken })
+        } catch (err) {
+          console.error('[Executor] Erro no resume pós-CTA', err)
+        }
+      } else {
+        await updateRunStatus(run.id, 'completed')
+      }
+      return true
+    }
+
+    if (currentStep.type === 'image_message') {
+      // Enviar imagem real
+      const config = currentStep.config as unknown as import('@/lib/supabase/types').ImageMessageStepConfig
+      const caption = config.caption ? interpolateVariables(config.caption, { contact }) : undefined
+      const { sendImageMessageIg } = await import('@/lib/meta/messages')
+      if (igAccessToken) {
+        await sendImageMessageIg(contact.instagram_user_id, config.image_url, caption, igAccessToken)
+      }
+      // Imagem não tem branching — continuar o fluxo
+      const nextStep = steps.find(s => s.parent_step_id === currentStep.id && !s.branch_value)
+      if (nextStep) {
+        await updateRunStatus(run.id, 'running')
+        try {
+          await executeAutomationRun(run.id, nextStep.id, { account, contact, allSteps: steps, igAccessToken })
+        } catch (err) {
+          console.error('[Executor] Erro no resume pós-imagem', err)
+        }
+      } else {
+        await updateRunStatus(run.id, 'completed')
+      }
+      return true
+    }
+
+    // Outros tipos de step (message, delay, etc.) — retomar diretamente
     await updateRunStatus(run.id, 'running')
     try {
-      await executeAutomationRun(run.id, currentStep.id, {
-        account,
-        contact,
-        allSteps: steps,
-        igAccessToken,
-      })
+      await executeAutomationRun(run.id, currentStep.id, { account, contact, allSteps: steps, igAccessToken })
     } catch (err) {
       console.error('[Executor] Erro fatal no resume pós-Private Reply', err)
     }
-    return true
-  }
-
-  // ── Quick Reply: verificar se precisa enviar botões reais ──────────────
-  // Se o usuário respondeu com texto livre (não clicou botão) E o run foi
-  // disparado por comentário → enviar quick replies com botões reais via IG API.
-  // Os botões reais só podem ser enviados via DM regular (não Private Reply).
-  if (!isQuickReplyClick && run.trigger_event_id) {
-    const config = currentStep.config as unknown as import('@/lib/supabase/types').QuickReplyStepConfig
-    const { interpolateVariables } = await import('./variables')
-    const text = interpolateVariables(config.text, { contact })
-
-    const { sendQuickRepliesIg } = await import('@/lib/meta/messages')
-    if (igAccessToken) {
-      const result = await sendQuickRepliesIg(
-        contact.instagram_user_id,
-        text,
-        config.buttons,
-        igAccessToken
-      )
-      if (result) {
-        console.log(`[Executor] Quick replies com botões reais enviados para contato ${contactId}`)
-      } else {
-        console.error(`[Executor] Falha ao enviar quick replies reais para contato ${contactId}`)
-      }
-    }
-    // Manter em waiting_reply — aguardar clique no botão
     return true
   }
 

@@ -14,9 +14,9 @@ export async function executeCtaButtonStep(
   let result
   if (ctx.triggerCommentId && ctx.isFirstMessage) {
     const { sendPrivateReply } = await import('@/lib/meta/messages')
-    // Fallback: private_replies não suporta botões. Enviamos o texto e um lembrete.
-    const fallbackText = `${text}\n\n(Dica: Responda a esta mensagem para liberar os botões interativos!)`
-    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token, ctx.igAccessToken)
+    // Private Reply só aceita texto puro — enviar apenas o texto configurado.
+    // O botão CTA real será enviado quando o usuário responder (via resumeAutomationRun).
+    result = await sendPrivateReply(ctx.triggerCommentId, text, ctx.account.access_token, ctx.igAccessToken)
   } else {
     result = await sendCtaButton(
       ctx.contact.instagram_user_id,
