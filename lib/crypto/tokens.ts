@@ -22,7 +22,8 @@ const KEY = Buffer.from(KEY_HEX.padEnd(64, '0'), 'hex')
 export function encryptToken(plaintext: string): string {
   const iv = crypto.randomBytes(16)
   const cipher = crypto.createCipheriv('aes-256-gcm', KEY, iv)
-  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()])
+  const encrypted = cipher.update(plaintext, 'utf8')
+  cipher.final() // necessário para gerar o authTag, mas não retorna dados
   const authTag = cipher.getAuthTag()
   return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted.toString('hex')}`
 }
