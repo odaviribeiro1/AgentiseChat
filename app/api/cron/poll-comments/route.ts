@@ -112,12 +112,23 @@ export async function GET(request: NextRequest) {
           )
 
           const newComments = comments.filter(c => !processedIds.has(c.id))
+
+          debug.push({
+            step: 'filter_result',
+            postId,
+            alreadyProcessed: processedIds.size,
+            newComments: newComments.length,
+          })
+
           if (!newComments.length) continue
 
           // 6. Processar cada comentário novo
           for (const comment of newComments) {
             // Ignorar comentários do próprio dono da conta
-            if (comment.from.id === account.instagram_user_id) continue
+            if (comment.from?.id === account.instagram_user_id) {
+              debug.push({ step: 'skip_owner', commentId: comment.id })
+              continue
+            }
 
             totalProcessed++
 
