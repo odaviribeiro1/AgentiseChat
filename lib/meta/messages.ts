@@ -168,33 +168,29 @@ export async function replyToComment(
   return data
 }
 // ─── Resposta privada via comentário (Private Reply) ───────────────────────
-// Usa /{comment-id}/private_replies — requer Page Access Token + instagram_manage_comments.
-// O User Token não funciona aqui — precisamos do Page Token.
+// Usa graph.instagram.com/me/messages com Instagram Token (IGAA...).
+// O Facebook Token (EAA...) NÃO funciona em graph.instagram.com.
 export async function sendPrivateReply(
   commentId: string,
   text: string,
-  accessToken?: string,
+  _accessToken?: string,
   _senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
-  // private_replies requer Page Token, não User Token.
-  // Buscar o Page Token via me/accounts usando o User Token.
-  const { data: pagesData } = await graphApi<{ data: Array<{ id: string; access_token: string }> }>(
-    'me/accounts?fields=id,access_token',
-    { accessToken }
-  )
-
-  const pageToken = pagesData?.data?.[0]?.access_token
-  if (!pageToken) {
-    console.error('[Messages] Não foi possível obter Page Token para private_replies')
+  const igToken = process.env.INSTAGRAM_DM_TOKEN
+  if (!igToken) {
+    console.error('[Messages] INSTAGRAM_DM_TOKEN não configurado')
     return null
   }
 
   const { data, error, status } = await graphApi<MetaSendMessageResponse>(
-    `${commentId}/private_replies`,
+    'https://graph.instagram.com/v21.0/me/messages',
     {
       method: 'POST',
-      body: { message: text },
-      accessToken: pageToken,
+      body: {
+        recipient: { comment_id: commentId },
+        message: { text },
+      },
+      accessToken: igToken,
     }
   )
 
@@ -203,7 +199,7 @@ export async function sendPrivateReply(
     try {
       const { createServiceClient } = await import('@/lib/supabase/server')
       const supabase = createServiceClient()
-      const tokenUsed = accessToken ?? process.env.INSTAGRAM_ACCESS_TOKEN ?? ''
+      const tokenUsed = process.env.INSTAGRAM_DM_TOKEN ?? ''
       await supabase.from('webhook_events').insert({
         event_type: 'send_error',
         payload: {
