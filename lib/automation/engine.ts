@@ -3,6 +3,7 @@ import { canSendToContact } from './anti-spam'
 import { executeAutomationRun } from './executor'
 import type { NormalizedWebhookEvent } from '@/lib/meta/types'
 import type { AutomationRow, AccountRow, ContactRow, TriggerConfig } from '@/lib/supabase/types'
+import type { WebhookEventType } from '@/lib/meta/types'
 import type { Json } from '@/lib/supabase/database.types'
 
 /**
@@ -33,7 +34,7 @@ export async function processAutomationEvent(
   }
 
   // 2. Upsert do contato que fez a interação
-  const contact = await upsertContact(account, event.senderIgId)
+  const contact = await upsertContact(account, event.senderIgId, event.type)
   if (!contact) return
 
   // Módulo 5: Tentar retomar fluxo existente se for mensagem (não comentário)
@@ -199,27 +200,31 @@ export function matchesKeyword(comment: string, config: TriggerConfig): boolean 
 
 /**
  * Upsert do contato que gerou o evento.
- * Cria se não existe, atualiza last_message_at e window_expires_at se já existe.
+ * Atualiza window_expires_at apenas para eventos de DM (não para comentários).
+ * Um comentário NÃO abre a janela de 24h de mensagens.
  */
 async function upsertContact(
   account: AccountRow,
-  senderIgId: string
+  senderIgId: string,
+  eventType: WebhookEventType
 ): Promise<ContactRow | null> {
   const supabase = createServiceClient()
+  const isDmEvent = ['dm_text', 'dm_quick_reply', 'dm_image', 'dm_story_reply'].includes(eventType)
+
+  // Só atualizar janela de 24h para eventos de DM (não comentários)
   const now = new Date()
-  const windowExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
+  const upsertData = {
+    account_id: account.id,
+    instagram_user_id: senderIgId,
+    ...(isDmEvent ? {
+      last_message_at: now.toISOString(),
+      window_expires_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+    } : {}),
+  }
 
   const { data, error } = await supabase
     .from('contacts')
-    .upsert(
-      {
-        account_id: account.id,
-        instagram_user_id: senderIgId,
-        last_message_at: now.toISOString(),
-        window_expires_at: windowExpiresAt,
-      },
-      { onConflict: 'account_id,instagram_user_id' }
-    )
+    .upsert(upsertData, { onConflict: 'account_id,instagram_user_id' })
     .select()
     .single()
 

@@ -166,16 +166,22 @@ export async function replyToComment(
   return data
 }
 // ─── Resposta privada via comentário (Private Reply) ───────────────────────
+// Usa o endpoint padrão de mensagens com recipient.comment_id
+// conforme exigido pela Instagram Messaging API (Graph API v21.0+).
 export async function sendPrivateReply(
   commentId: string,
   text: string,
-  accessToken?: string
+  accessToken?: string,
+  senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
   const { data, error } = await graphApi<MetaSendMessageResponse>(
-    `${commentId}/private_replies`,
+    messagesEndpoint(senderIgId),
     {
       method: 'POST',
-      body: { message: text },
+      body: {
+        recipient: { comment_id: commentId },
+        message: { text },
+      },
       accessToken,
     }
   )

@@ -17,7 +17,7 @@ export async function executeQuickReplyStep(
     // Fallback: private_replies não suporta botões. Enviamos o texto e as opções como texto.
     const options = config.buttons.map(b => `• ${b.title}`).join('\n')
     const fallbackText = `${text}\n\n${options}\n\n(Dica: Responda a esta mensagem com a opção desejada!)`
-    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token)
+    result = await sendPrivateReply(ctx.triggerCommentId, fallbackText, ctx.account.access_token, ctx.account.instagram_user_id)
   } else {
     result = await sendQuickReplies(
       ctx.contact.instagram_user_id,

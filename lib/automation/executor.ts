@@ -76,10 +76,26 @@ export async function executeAutomationRun(
       return
     }
 
+    const wasFirstMessage = fullCtx.isFirstMessage
+
     if (result.success && ['message', 'image_message', 'quick_reply', 'cta_button'].includes(step.type)) {
       fullCtx.isFirstMessage = false
     }
-    
+
+    // Após Private Reply (primeiro envio em fluxo de comentário), pausar o run.
+    // O usuário precisa responder à DM para abrir a janela de 24h antes de continuar.
+    // Exceção: se não há próximo step (automação de 1 step), deixa completar normalmente.
+    if (fullCtx.triggerCommentId && wasFirstMessage && result.success && result.nextStepId
+        && ['message', 'image_message', 'quick_reply', 'cta_button'].includes(step.type)) {
+      await supabase
+        .from('automation_runs')
+        .update({ current_step_id: result.nextStepId })
+        .eq('id', runId)
+      await updateRunStatus(runId, 'waiting_reply')
+      console.log(`[Executor] Run ${runId} pausado após Private Reply — aguardando resposta do contato`)
+      return
+    }
+
     currentStepId = result.nextStepId
   }
 
@@ -152,7 +168,23 @@ export async function resumeAutomationRun(
   const currentStep = steps.find(s => s.id === run.current_step_id)
   if (!currentStep) return false
 
-  // Filhos do step atual
+  // Se o run pausou após Private Reply (step atual NÃO é quick_reply),
+  // current_step_id já aponta para o próximo step a executar.
+  // Retomar diretamente sem triggerCommentId (agora o contato tem janela de 24h).
+  if (currentStep.type !== 'quick_reply') {
+    await updateRunStatus(run.id, 'running')
+    executeAutomationRun(run.id, currentStep.id, {
+      account,
+      contact,
+      allSteps: steps,
+      // SEM triggerCommentId — agora usa DM regular (janela de 24h aberta)
+    }).catch(err => {
+      console.error('[Executor] Erro fatal no resume pós-Private Reply', err)
+    })
+    return true
+  }
+
+  // Filhos do step atual (quick_reply — lógica de branching)
   const childSteps = steps.filter(s => s.parent_step_id === currentStep.id)
   if (!childSteps.length) {
     // Se não tem filhos, o fluxo termina.
@@ -170,12 +202,11 @@ export async function resumeAutomationRun(
     const defaultStep = childSteps.find(s => !s.branch_value)
     if (defaultStep) {
       await updateRunStatus(run.id, 'running')
-      // Executar o fluxo — fire and forget (não bloqueia o webhook)
       executeAutomationRun(run.id, defaultStep.id, {
         account,
         contact,
         allSteps: steps,
-        triggerCommentId: run.trigger_event_id ?? undefined,
+        // SEM triggerCommentId — retomando via DM
       }).catch(err => {
         console.error('[Executor] Erro fatal no resume', err)
       })
@@ -192,6 +223,7 @@ export async function resumeAutomationRun(
     account,
     contact,
     allSteps: steps,
+    // SEM triggerCommentId — retomando via DM
   }).catch(err => {
     console.error('[Executor] Erro fatal no executor durante resume:', err)
   })
