@@ -1,11 +1,9 @@
 import { graphApi } from './client'
 import type { MetaSendMessageResponse } from './types'
 
-// Instagram Messaging API usa graph.instagram.com (não graph.facebook.com)
-const IG_API_BASE = 'https://graph.instagram.com/v21.0'
-
-const messagesEndpoint = (senderIgId?: string) =>
-  senderIgId ? `${IG_API_BASE}/${senderIgId}/messages` : `${IG_API_BASE}/me/messages`
+// Instagram Messaging API usa graph.instagram.com/me/messages
+// O token identifica a conta — não precisa do igUserId no path
+const IG_MESSAGES_ENDPOINT = 'https://graph.instagram.com/v21.0/me/messages'
 
 // ─── Texto simples ────────────────────────────────────────────────────────────
 export async function sendTextMessage(
@@ -14,7 +12,7 @@ export async function sendTextMessage(
   accessToken?: string,
   senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
-  const { data, error } = await graphApi<MetaSendMessageResponse>(messagesEndpoint(senderIgId), {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(IG_MESSAGES_ENDPOINT, {
     method: 'POST',
     body: {
       recipient: { id: recipientIgId },
@@ -41,7 +39,7 @@ export async function sendImageMessage(
 ): Promise<MetaSendMessageResponse | null> {
   // Enviar imagem primeiro
   const { data: imgData, error: imgError } = await graphApi<MetaSendMessageResponse>(
-    messagesEndpoint(senderIgId),
+    IG_MESSAGES_ENDPOINT,
     {
       method: 'POST',
       body: {
@@ -83,7 +81,7 @@ export async function sendQuickReplies(
     buttons = buttons.slice(0, 13)
   }
 
-  const { data, error } = await graphApi<MetaSendMessageResponse>(messagesEndpoint(senderIgId), {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(IG_MESSAGES_ENDPOINT, {
     method: 'POST',
     accessToken,
     body: {
@@ -116,7 +114,7 @@ export async function sendCtaButton(
   accessToken?: string,
   senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
-  const { data, error } = await graphApi<MetaSendMessageResponse>(messagesEndpoint(senderIgId), {
+  const { data, error } = await graphApi<MetaSendMessageResponse>(IG_MESSAGES_ENDPOINT, {
     method: 'POST',
     accessToken,
     body: {
@@ -178,7 +176,7 @@ export async function sendPrivateReply(
   senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
   const { data, error, status } = await graphApi<MetaSendMessageResponse>(
-    messagesEndpoint(senderIgId),
+    IG_MESSAGES_ENDPOINT,
     {
       method: 'POST',
       body: {
@@ -203,7 +201,7 @@ export async function sendPrivateReply(
           senderIgId,
           error,
           status,
-          endpoint: messagesEndpoint(senderIgId),
+          endpoint: IG_MESSAGES_ENDPOINT,
           tokenPrefix: tokenUsed.slice(0, 10),
           tokenLength: tokenUsed.length,
           textPreview: text.slice(0, 100),
