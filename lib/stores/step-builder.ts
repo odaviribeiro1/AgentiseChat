@@ -34,7 +34,7 @@ const getDefaultConfig = (type: StepType): StepConfig => {
     case 'quick_reply':
       return { text: '', buttons: [] }
     case 'cta_button':
-      return { text: '', button_title: '', url: '' }
+      return { text: '', buttons: [{ title: '', url: '' }] }
     case 'delay':
       return { seconds: 60 }
     case 'ai':

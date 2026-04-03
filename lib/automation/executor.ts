@@ -202,12 +202,17 @@ export async function resumeAutomationRun(
     }
 
     if (currentStep.type === 'cta_button') {
-      // Enviar CTA button real
+      // Enviar CTA button real (suporta múltiplos botões)
       const config = currentStep.config as unknown as import('@/lib/supabase/types').CtaButtonStepConfig
       const text = interpolateVariables(config.text, { contact })
+      const buttons = config.buttons?.length
+        ? config.buttons
+        : config.button_title && config.url
+          ? [{ title: config.button_title, url: config.url }]
+          : []
       const { sendCtaButtonIg } = await import('@/lib/meta/messages')
-      if (igAccessToken) {
-        await sendCtaButtonIg(contact.instagram_user_id, text, config.button_title, config.url, igAccessToken)
+      if (igAccessToken && buttons.length) {
+        await sendCtaButtonIg(contact.instagram_user_id, text, buttons, igAccessToken)
       }
       // CTA não tem branching — continuar o fluxo
       const nextStep = steps.find(s => s.parent_step_id === currentStep.id && !s.branch_value)

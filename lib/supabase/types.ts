@@ -51,10 +51,18 @@ export interface QuickReplyStepConfig {
   buttons: QuickReplyButton[]
 }
 
+export interface CtaButtonButton {
+  title: string
+  url: string
+  apply_tag?: string
+}
+
 export interface CtaButtonStepConfig {
   text: string
-  button_title: string
-  url: string
+  buttons: CtaButtonButton[]
+  // Retrocompat: campos antigos (singular) — convertidos no executor
+  button_title?: string
+  url?: string
 }
 
 export interface DelayStepConfig {

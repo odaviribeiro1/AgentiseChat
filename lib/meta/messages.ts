@@ -146,11 +146,11 @@ export async function sendQuickRepliesIg(
 }
 
 // ─── CTA Button via Instagram API (graph.instagram.com + IGAA token) ──────────
+// Suporta até 3 botões no template generic (limite Meta API).
 export async function sendCtaButtonIg(
   recipientIgId: string,
   text: string,
-  buttonTitle: string,
-  url: string,
+  buttons: Array<{ title: string; url: string }>,
   igAccessToken: string
 ): Promise<MetaSendMessageResponse | null> {
   const { data, error } = await graphApi<MetaSendMessageResponse>(
@@ -167,11 +167,11 @@ export async function sendCtaButtonIg(
               template_type: 'generic',
               elements: [{
                 title: text.slice(0, 80),
-                buttons: [{
+                buttons: buttons.slice(0, 3).map(b => ({
                   type: 'web_url',
-                  url,
-                  title: buttonTitle.slice(0, 20),
-                }],
+                  url: b.url,
+                  title: b.title.slice(0, 20),
+                })),
               }],
             },
           },
@@ -239,8 +239,7 @@ export async function sendImageMessageIg(
 export async function sendCtaButton(
   recipientIgId: string,
   text: string,
-  buttonTitle: string,
-  url: string,
+  buttons: Array<{ title: string; url: string }>,
   accessToken?: string,
   senderIgId?: string
 ): Promise<MetaSendMessageResponse | null> {
@@ -255,13 +254,11 @@ export async function sendCtaButton(
           payload: {
             template_type: 'button',
             text,
-            buttons: [
-              {
-                type: 'web_url',
-                url,
-                title: buttonTitle.slice(0, 20),
-              },
-            ],
+            buttons: buttons.slice(0, 3).map(b => ({
+              type: 'web_url',
+              url: b.url,
+              title: b.title.slice(0, 20),
+            })),
           },
         },
       },

@@ -125,8 +125,7 @@ export async function processBroadcast(broadcastId: string) {
         sendCtaButtonIg(
           contact.instagram_user_id,
           messageConfig.text,
-          messageConfig.button!.title,
-          messageConfig.button!.url,
+          [{ title: messageConfig.button!.title, url: messageConfig.button!.url }],
           igAccessToken
         )
       )
