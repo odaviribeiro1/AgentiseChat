@@ -7,7 +7,6 @@ import {
   Zap,
   Megaphone,
   Users,
-  Link2,
   Settings,
   ChevronLeft,
   LogOut,
@@ -21,7 +20,6 @@ const NAV_ITEMS = [
   { href: '/automacoes',    label: 'Automações',    icon: Zap },
   { href: '/broadcast',     label: 'Broadcast',     icon: Megaphone },
   { href: '/contatos',      label: 'Contatos',      icon: Users },
-  { href: '/conexao',       label: 'Conexão',       icon: Link2 },
   { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
