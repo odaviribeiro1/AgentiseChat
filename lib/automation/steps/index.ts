@@ -18,6 +18,15 @@ export interface StepResult {
   metaMessageId?: string        // ID da mensagem enviada pela Meta API
 }
 
+/** Encontra o próximo step: filho direto (árvore) ou próximo linear (position) */
+export function findNextStep(step: StepRow, allSteps: StepRow[]): StepRow | undefined {
+  const child = allSteps.find(s => s.parent_step_id === step.id && !s.branch_value)
+  if (child) return child
+  return allSteps
+    .filter(s => !s.parent_step_id && s.position > step.position)
+    .sort((a, b) => a.position - b.position)[0]
+}
+
 export async function executeStep(
   step: StepRow,
   ctx: StepExecutionContext

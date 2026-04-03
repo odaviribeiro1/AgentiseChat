@@ -28,9 +28,8 @@ export async function executeTagStep(
   // Atualizar o contexto local para steps subsequentes verem a tag atualizada
   ctx.contact.tags = newTags
 
-  const nextStep = ctx.allSteps.find(
-    s => s.parent_step_id === step.id && !s.branch_value
-  )
+  const { findNextStep } = await import('./index')
+  const nextStep = findNextStep(step, ctx.allSteps)
 
   return { success: true, nextStepId: nextStep?.id ?? null }
 }

@@ -51,9 +51,8 @@ export async function executeImageMessageStep(
     return { success: false, nextStepId: null, error: 'Falha ao enviar imagem' }
   }
 
-  const nextStep = ctx.allSteps.find(
-    s => s.parent_step_id === step.id && !s.branch_value
-  )
+  const { findNextStep } = await import('./index')
+  const nextStep = findNextStep(step, ctx.allSteps)
 
   return { success: true, nextStepId: nextStep?.id ?? null, metaMessageId: result.message_id }
 }

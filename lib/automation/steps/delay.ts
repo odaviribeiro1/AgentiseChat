@@ -12,9 +12,8 @@ export async function executeDelayStep(
   // setTimeout inline é adequado apenas para delays curtos em desenvolvimento.
   await new Promise(resolve => setTimeout(resolve, config.seconds * 1000))
 
-  const nextStep = ctx.allSteps.find(
-    s => s.parent_step_id === step.id && !s.branch_value
-  )
+  const { findNextStep } = await import('./index')
+  const nextStep = findNextStep(step, ctx.allSteps)
 
   return { success: true, nextStepId: nextStep?.id ?? null }
 }

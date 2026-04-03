@@ -26,10 +26,8 @@ export async function executeMessageStep(
     return { success: false, nextStepId: null, error: 'Falha ao enviar mensagem' }
   }
 
-  // Próximo step: filho de posição 0 sem branch_value (step linear)
-  const nextStep = ctx.allSteps.find(
-    s => s.parent_step_id === step.id && !s.branch_value
-  )
+  const { findNextStep } = await import('./index')
+  const nextStep = findNextStep(step, ctx.allSteps)
 
   return {
     success: true,
