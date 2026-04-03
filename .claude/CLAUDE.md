@@ -881,6 +881,22 @@ Após enviar o Private Reply (primeira mensagem via comentário), o executor **p
 - O resume **não** passa `triggerCommentId` — a partir dali, usa DM regular
 - Automações de 1 step completam normalmente sem pausar (não há próximo step)
 
+### Limitação — Development Mode Meta API
+
+Em Development mode, os seguintes recursos **NÃO** funcionam:
+- Webhooks de DM (`dm_text`, `dm_quick_reply`) — não são entregues
+- `GET /me/conversations` — retorna vazio
+- Polling de DMs — impossível sem as APIs acima
+
+**Impacto:** após o usuário clicar em um botão de Quick Reply, o fluxo fica em `waiting_reply` e é cancelado pelo cleanup cron após 24h. Botões CTA (com link) **não são afetados** — abrem URL no navegador sem necessidade de webhook.
+
+**Quando o app for para Live mode** (após assessment aprovado pela Meta):
+1. Webhooks de `dm_quick_reply` serão entregues normalmente
+2. O `resumeAutomationRun()` será chamado automaticamente
+3. O fluxo continuará a partir do branch correto
+
+**Nenhuma alteração de código é necessária** — a lógica já está implementada.
+
 ---
 
 ## 🔄 Fluxo de Desenvolvimento
