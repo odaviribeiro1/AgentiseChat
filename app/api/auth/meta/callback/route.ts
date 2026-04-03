@@ -45,47 +45,40 @@ export async function GET(request: NextRequest) {
   }
 
   // Trocar code por token de curta duração
-  console.log('[OAuth Callback] Trocando code por shortToken...')
   const shortToken = await exchangeCodeForToken(code)
   if (!shortToken) {
-    console.error('[OAuth Callback] Falha na troca de code por token')
+    console.error('[OAuth] Falha na troca de code por token')
     return NextResponse.redirect(`${appUrl}/conexao?error=token_exchange_failed`)
   }
 
   // Converter para token de longa duração (60 dias)
-  console.log('[OAuth Callback] Convertendo para longToken...')
   const longTokenResult = await getLongLivedToken(shortToken.access_token)
   if (longTokenResult.error) {
-    console.error('[OAuth Callback] Falha ao obter longToken', longTokenResult.error)
+    console.error('[OAuth] Falha ao obter longToken', longTokenResult.error)
     return NextResponse.redirect(`${appUrl}/conexao?error=long_token_failed`)
   }
   const longToken = longTokenResult.data
 
   // Buscar perfil do Instagram
-  console.log('[OAuth Callback] Buscando perfil do Instagram...')
   const profile = await getInstagramProfile(longToken.access_token)
   if (!profile) {
-    console.error('[OAuth Callback] Perfil do Instagram não encontrado após busca exaustiva')
+    console.error('[OAuth] Perfil do Instagram não encontrado')
     return NextResponse.redirect(`${appUrl}/conexao?error=profile_failed`)
   }
 
-  console.log(`[OAuth Callback] Perfil encontrado: @${profile.username} (ID: ${profile.id})`)
-
-  // 1. Tentar inscrever o app nos webhooks da página vinculada
-  console.log('[OAuth Callback] Buscando páginas para inscrição de webhooks...')
+  // Tentar inscrever o app nos webhooks da página vinculada
   const pages = await getUserPages(longToken.access_token)
   const linkedPage = pages.find(p => p.instagram_business_account?.id === profile.id)
-  
+
   let webhookVerifiedAt: string | null = null
-  
+
   if (linkedPage) {
-    console.log(`[OAuth Callback] Página vinculada encontrada: ${linkedPage.name} (${linkedPage.id})`)
     const subResult = await subscribeAppToPage(linkedPage.id, linkedPage.access_token)
     if (subResult.success) {
       webhookVerifiedAt = new Date().toISOString()
     }
   } else {
-    console.warn('[OAuth Callback] Nenhuma página vinculada encontrada para este Instagram. Webhooks podem não funcionar.')
+    console.warn('[OAuth] Nenhuma página vinculada — webhooks podem não funcionar')
   }
 
   // Salvar/atualizar conta no banco usando service role

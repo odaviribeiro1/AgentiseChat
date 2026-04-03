@@ -2,6 +2,8 @@ import { NextRequest, NextResponse, after } from 'next/server'
 import { processBroadcast } from '@/lib/queue/broadcast'
 
 export async function GET(request: NextRequest) {
+  // Auth: chamado internamente pelo cron ou pela action de broadcast
+  const authHeader = request.headers.get('authorization')
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
 

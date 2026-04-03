@@ -42,7 +42,7 @@ export async function executeAutomationRun(
       .update({ current_step_id: currentStepId })
       .eq('id', runId)
 
-    console.log(`[Executor] Executando step ${step.type} (${step.id})`, { runId })
+    // Step execution tracked via automation_runs.current_step_id
 
     const result = await executeStep(step, fullCtx)
 
@@ -93,7 +93,7 @@ export async function executeAutomationRun(
         .update({ current_step_id: result.nextStepId })
         .eq('id', runId)
       await updateRunStatus(runId, 'waiting_reply')
-      console.log(`[Executor] Run ${runId} pausado após Private Reply — aguardando resposta do contato`)
+      // Run paused after Private Reply — tracked via status 'waiting_reply'
       return
     }
 
@@ -102,7 +102,7 @@ export async function executeAutomationRun(
 
   // Chegou ao fim do fluxo sem erros
   await updateRunStatus(runId, 'completed')
-  console.log(`[Executor] Run ${runId} concluído com sucesso`)
+  // Run completion tracked via status 'completed'
 }
 
 async function applyTagToContact(contactId: string, tag: string): Promise<void> {

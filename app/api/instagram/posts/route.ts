@@ -23,8 +23,6 @@ export async function GET(request: NextRequest) {
   const { decryptToken } = await import('@/lib/crypto/tokens')
   const decryptedToken = decryptToken(account.access_token)
 
-  console.log('[API Posts] Iniciando busca para ID:', account.instagram_user_id)
-
   const { getInstagramPosts } = await import('@/lib/meta/instagram')
   const { posts, error } = await getInstagramPosts(account.instagram_user_id, decryptedToken)
 

@@ -29,7 +29,7 @@ export interface InstagramPost {
 export async function getInstagramProfile(
   accessToken: string
 ): Promise<InstagramProfile | null> {
-  console.log('[Instagram] Iniciando busca de perfil...')
+  // Profile fetch via me/accounts → page → instagram_business_account
 
   // 1. Buscar as páginas (Accounts) do usuário
   const { data: accountsData, error: accountsError } = await graphApi<{ data: any[] }>(
@@ -47,7 +47,7 @@ export async function getInstagramProfile(
     return meData
   }
 
-  console.log(`[Instagram] ${accountsData.data.length} páginas encontradas. Buscando IG Business Account...`)
+  // Found pages, searching for IG Business Account link
 
   // 2. Para cada página, buscar o instagram_business_account vinculado
   for (const page of accountsData.data) {
@@ -58,7 +58,7 @@ export async function getInstagramProfile(
 
     if (pageData?.instagram_business_account?.id) {
       const igId = pageData.instagram_business_account.id
-      console.log(`[Instagram] Conta Business encontrada: ${igId}. Buscando detalhes...`)
+      // IG Business Account found, fetching profile details
 
       // 3. Buscar os detalhes da conta do Instagram
       const { data: igProfile, error: igError } = await graphApi<InstagramProfile>(
@@ -116,7 +116,7 @@ export async function getInstagramPosts(
 ): Promise<{ posts: InstagramPost[]; error: string | null }> {
   const fields = 'id,caption,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp,like_count,comments_count'
 
-  console.log(`[Instagram] Buscando mídias para ID ${instagramUserId}...`)
+  // Fetch media feed + stories
 
   // 1. Buscar Posts e Reels da feed
   const { data: mediaData, error: mediaError } = await graphApi<{ data: InstagramPost[] }>(
@@ -184,7 +184,7 @@ export async function subscribeAppToPage(
   pageId: string,
   pageAccessToken: string
 ): Promise<{ success: boolean; error?: string }> {
-  console.log(`[Instagram] Inscrevendo App na página ${pageId}...`)
+  // Subscribe app to page webhooks
 
   const { data, error, status } = await graphApi<{ success: boolean }>(
     `${pageId}/subscribed_apps`,
@@ -204,7 +204,7 @@ export async function subscribeAppToPage(
     return { success: false, error: error ?? `HTTP ${status}` }
   }
 
-  console.log(`[Instagram] App inscrito com sucesso na página ${pageId}`)
+  // App subscribed to page successfully
   return { success: true }
 }
 

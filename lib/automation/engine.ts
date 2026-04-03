@@ -19,7 +19,7 @@ export async function processAutomationEvent(
 
   // Helper para logar debug no banco (visível no Supabase Dashboard)
   const debugLog = async (stage: string, details: Record<string, unknown>) => {
-    console.log(`[Engine] ${stage}`, details)
+    // Debug persisted to webhook_events — no console.log in production
     try {
       await supabase.from('webhook_events').insert({
         event_type: `engine_debug:${stage}`,
@@ -127,7 +127,7 @@ async function evaluateAndRun(
 
   // Helper de debug persistente
   const debugLog = async (stage: string, details: Record<string, unknown>) => {
-    console.log(`[Engine:evaluateAndRun] ${stage}`, details)
+    // Debug persisted to webhook_events
     try {
       await supabase.from('webhook_events').insert({
         event_type: `engine_eval:${stage}`,
@@ -234,11 +234,7 @@ async function evaluateAndRun(
     await replyToComment(event.comment!.id, config.reply_comment_text)
   }
 
-  console.log('[Engine] Iniciando run', {
-    runId: run.id,
-    automationId: automation.id,
-    contactId: contact.id,
-  })
+  // Run creation tracked via webhook_events engine_eval:run_created
 
   // Executar o fluxo (await — necessário para Vercel serverless)
   const { decryptToken } = await import('@/lib/crypto/tokens')

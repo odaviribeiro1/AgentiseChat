@@ -21,13 +21,6 @@ export function buildOAuthUrl(state: string): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const redirectUri = process.env.META_REDIRECT_URI || `${appUrl}/api/auth/meta/callback`
 
-  console.log('[OAuth] Depuração:', {
-    hasAppId: !!appId,
-    appIdLength: appId?.length,
-    appIdPrefix: appId?.substring(0, 4),
-    hasConfigId: !!configId,
-  })
-
   if (!appId) {
     throw new Error('META_APP_ID não encontrada nas variáveis de ambiente')
   }

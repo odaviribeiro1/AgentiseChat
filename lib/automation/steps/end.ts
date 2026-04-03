@@ -10,10 +10,7 @@ export async function executeEndStep(
 
   if (config.notify_operator && config.notification_message) {
     // TODO: implementar notificação (email/webhook) para o operador
-    console.log('[End Step] Notificação para operador:', {
-      contactId: ctx.contact.id,
-      message: config.notification_message,
-    })
+    console.warn('[End Step] TODO: notificação para operador', { contactId: ctx.contact.id })
   }
 
   return { success: true, nextStepId: null }

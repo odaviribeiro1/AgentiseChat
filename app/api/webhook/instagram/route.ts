@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     token === process.env.META_VERIFY_TOKEN &&
     challenge
   ) {
-    console.log('[Webhook] Verificação de webhook confirmada')
+    // Webhook verification confirmed
     return new NextResponse(challenge, {
       status: 200,
       headers: { 'Content-Type': 'text/plain' },
@@ -161,7 +161,7 @@ async function processWebhookEvent(
     }
   }
 
-  console.log(`[Webhook] Evento ${event.type} processado — sender: ${event.senderIgId}`)
+  // Event processed — tracked via webhook_events table
 }
 
 // ─── Helpers internos ─────────────────────────────────────────────────────────
