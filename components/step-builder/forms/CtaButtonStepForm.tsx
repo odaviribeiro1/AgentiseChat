@@ -4,7 +4,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useEffect } from 'react'
-import { Plus, Trash2, Tag, ExternalLink } from 'lucide-react'
+import { Plus, Trash2, Tag, ExternalLink, ArrowRight } from 'lucide-react'
 import type { CtaButtonStepConfig } from '@/lib/supabase/types'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -17,27 +17,36 @@ const schema = z.object({
     url: z.string().url('URL inválida — inclua https://'),
     apply_tag: z.string().optional(),
   })).min(1, 'Adicione pelo menos 1 botão').max(3, 'Máximo 3 botões (limite Meta API)'),
+  next_step_id: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
 
+interface AvailableStep {
+  id: string
+  type: string
+  position: number
+  label: string
+}
+
 interface CtaButtonStepFormProps {
   initialConfig: CtaButtonStepConfig
   onChange: (config: CtaButtonStepConfig) => void
+  availableSteps?: AvailableStep[]
 }
 
 function normalizeConfig(config: CtaButtonStepConfig): FormValues {
   // Retrocompat: converter formato antigo (singular) para array
   if (config.buttons?.length) {
-    return { text: config.text, buttons: config.buttons }
+    return { text: config.text, buttons: config.buttons, next_step_id: config.next_step_id || '' }
   }
   if (config.button_title && config.url) {
-    return { text: config.text, buttons: [{ title: config.button_title, url: config.url }] }
+    return { text: config.text, buttons: [{ title: config.button_title, url: config.url }], next_step_id: config.next_step_id || '' }
   }
-  return { text: config.text || '', buttons: [{ title: '', url: '' }] }
+  return { text: config.text || '', buttons: [{ title: '', url: '' }], next_step_id: config.next_step_id || '' }
 }
 
-export function CtaButtonStepForm({ initialConfig, onChange }: CtaButtonStepFormProps) {
+export function CtaButtonStepForm({ initialConfig, onChange, availableSteps = [] }: CtaButtonStepFormProps) {
   const { register, control, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: normalizeConfig(initialConfig),
@@ -144,6 +153,28 @@ export function CtaButtonStepForm({ initialConfig, onChange }: CtaButtonStepForm
             Adicionar Botão
           </button>
         )}
+      </div>
+
+      {/* Próximo Passo */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-[#1A202C] flex items-center gap-1.5">
+          <ArrowRight className="w-4 h-4 text-[#2B7FFF]" />
+          Próximo Passo
+        </Label>
+        <p className="text-xs text-[#718096]">
+          Após enviar o CTA, o fluxo avança automaticamente para o passo selecionado.
+        </p>
+        <select
+          {...register('next_step_id')}
+          className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#1A202C] bg-white focus:ring-[#2B7FFF] focus:border-[#2B7FFF]"
+        >
+          <option value="">Nenhum (encerrar fluxo)</option>
+          {availableSteps.map(step => (
+            <option key={step.id} value={step.id}>
+              Passo {step.position + 1}: {step.label}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   )

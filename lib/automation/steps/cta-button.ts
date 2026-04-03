@@ -76,6 +76,14 @@ export async function executeCtaButtonStep(
     return { success: false, nextStepId: null, error: 'Falha ao enviar CTA button' }
   }
 
+  // Usar next_step_id configurado no builder, ou fallback para próximo linear
+  if (config.next_step_id) {
+    const targetStep = ctx.allSteps.find(s => s.id === config.next_step_id)
+    if (targetStep) {
+      return { success: true, nextStepId: targetStep.id, metaMessageId: result.message_id }
+    }
+  }
+
   const { findNextStep } = await import('./index')
   const nextStep = findNextStep(step, ctx.allSteps)
 

@@ -60,6 +60,7 @@ export interface CtaButtonButton {
 export interface CtaButtonStepConfig {
   text: string
   buttons: CtaButtonButton[]
+  next_step_id?: string        // ID do step a executar após enviar o CTA
   // Retrocompat: campos antigos (singular) — convertidos no executor
   button_title?: string
   url?: string

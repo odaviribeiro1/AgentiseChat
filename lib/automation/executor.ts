@@ -214,8 +214,10 @@ export async function resumeAutomationRun(
       if (igAccessToken && buttons.length) {
         await sendCtaButtonIg(contact.instagram_user_id, text, buttons, igAccessToken)
       }
-      // CTA não tem branching — continuar o fluxo
-      const nextStep = steps.find(s => s.parent_step_id === currentStep.id && !s.branch_value)
+      // Usar next_step_id configurado, ou fallback para filho/linear
+      const ctaNextStepId = (config as any).next_step_id
+      const nextStep = (ctaNextStepId && steps.find(s => s.id === ctaNextStepId))
+        || steps.find(s => s.parent_step_id === currentStep.id && !s.branch_value)
       if (nextStep) {
         await updateRunStatus(run.id, 'running')
         try {

@@ -244,6 +244,21 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
               <CtaButtonStepForm
                 initialConfig={selectedStep.config as CtaButtonStepConfig}
                 onChange={(c) => updateStepConfig(selectedStep.id, c)}
+                availableSteps={steps
+                  .filter(s => s.id !== selectedStep.id && !s.parent_step_id)
+                  .map(s => ({
+                    id: s.id,
+                    type: s.type,
+                    position: s.position,
+                    label: (() => {
+                      const labels: Record<string, string> = {
+                        message: 'Mensagem', image_message: 'Imagem', quick_reply: 'Respostas Rápidas',
+                        cta_button: 'Botão com Link', delay: 'Delay', ai: 'IA',
+                        condition: 'Condição', tag: 'Tag', end: 'Fim',
+                      }
+                      return labels[s.type] || s.type
+                    })(),
+                  }))}
               />
             )}
           </div>
