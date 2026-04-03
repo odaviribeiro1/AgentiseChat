@@ -4,6 +4,8 @@ import type { StepRow, ImageMessageStepConfig } from '@/lib/supabase/types'
 import type { StepExecutionContext } from '../executor'
 import type { StepResult } from './index'
 
+const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
 export async function executeImageMessageStep(
   step: StepRow,
   ctx: StepExecutionContext
@@ -15,10 +17,25 @@ export async function executeImageMessageStep(
 
   let result
   if (ctx.triggerCommentId && ctx.isFirstMessage) {
-    const { sendPrivateReply } = await import('@/lib/meta/messages')
-    // Private Reply só aceita texto puro — enviar apenas a legenda.
-    // A imagem real será enviada quando o usuário responder (via resumeAutomationRun).
-    result = await sendPrivateReply(ctx.triggerCommentId, caption || 'Responda para receber o conteúdo!', ctx.account.access_token, ctx.igAccessToken)
+    // 1. Private Reply com legenda (abre janela)
+    const { sendPrivateReply, sendImageMessageIg } = await import('@/lib/meta/messages')
+    result = await sendPrivateReply(ctx.triggerCommentId, caption || 'Confira o conteúdo!', ctx.account.access_token, ctx.igAccessToken)
+
+    if (!result) {
+      return { success: false, nextStepId: null, error: 'Falha ao enviar Private Reply' }
+    }
+
+    // 2. Delay + enviar imagem real via DM regular
+    await sleep(2000)
+    if (ctx.igAccessToken) {
+      const imgResult = await sendImageMessageIg(
+        ctx.contact.instagram_user_id,
+        config.image_url,
+        caption,
+        ctx.igAccessToken
+      )
+      if (imgResult) result = imgResult
+    }
   } else {
     result = await sendImageMessage(
       ctx.contact.instagram_user_id,
