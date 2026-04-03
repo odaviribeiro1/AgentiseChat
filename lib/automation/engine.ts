@@ -318,5 +318,46 @@ async function upsertContact(
     return null
   }
 
+  // Se o contato não tem username, buscar perfil via Graph API (async, não bloqueia)
+  if (data && !data.username) {
+    fetchAndUpdateContactProfile(account, data.id, senderIgId).catch(() => {})
+  }
+
   return data
+}
+
+/**
+ * Busca username, nome e foto do contato via Instagram Graph API.
+ * Chamada async — não bloqueia o fluxo de automação.
+ */
+async function fetchAndUpdateContactProfile(
+  account: AccountRow,
+  contactId: string,
+  igUserId: string
+): Promise<void> {
+  try {
+    const { decryptToken } = await import('@/lib/crypto/tokens')
+    const token = account.ig_access_token
+      ? decryptToken(account.ig_access_token)
+      : process.env.INSTAGRAM_DM_TOKEN
+
+    if (!token) return
+
+    const { graphApi } = await import('@/lib/meta/client')
+    const { data } = await graphApi<{ id: string; username?: string; name?: string; profile_picture_url?: string }>(
+      `https://graph.instagram.com/v21.0/${igUserId}?fields=id,username,name,profile_picture_url`,
+      { accessToken: token }
+    )
+
+    if (data?.username) {
+      const supabase = createServiceClient()
+      await supabase.from('contacts').update({
+        username: data.username,
+        full_name: data.name ?? null,
+        profile_pic_url: data.profile_picture_url ?? null,
+      }).eq('id', contactId)
+    }
+  } catch {
+    // Não falhar por causa de profile fetch
+  }
 }
