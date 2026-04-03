@@ -70,6 +70,7 @@ export interface MetaAttachment {
 
 export interface MetaUser {
   id: string                        // Instagram-scoped User ID (IGSID)
+  username?: string                 // Username do Instagram (nem sempre presente)
 }
 
 // ─── Tipos de evento normalizados (interno) ───────────────────────────────────
@@ -87,6 +88,7 @@ export interface NormalizedWebhookEvent {
   type: WebhookEventType
   accountIgId: string               // ID da conta que recebeu o evento
   senderIgId: string                // ID do usuário que gerou o evento
+  senderUsername?: string            // Username do Instagram (quando disponível)
   timestamp: Date
   raw: MetaWebhookPayload           // payload original para log
   // campos específicos por tipo:

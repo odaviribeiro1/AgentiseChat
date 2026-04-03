@@ -62,7 +62,7 @@ export async function processAutomationEvent(
   await debugLog('account_found', { accountId: account.id, username: account.instagram_username })
 
   // 2. Upsert do contato que fez a interação
-  const contact = await upsertContact(account, event.senderIgId, event.type)
+  const contact = await upsertContact(account, event.senderIgId, event.type, event.senderUsername)
   if (!contact) {
     await debugLog('contact_upsert_failed', { senderIgId: event.senderIgId })
     return
@@ -291,7 +291,8 @@ export function matchesKeyword(comment: string, config: TriggerConfig): boolean 
 async function upsertContact(
   account: AccountRow,
   senderIgId: string,
-  eventType: WebhookEventType
+  eventType: WebhookEventType,
+  senderUsername?: string
 ): Promise<ContactRow | null> {
   const supabase = createServiceClient()
   const isDmEvent = ['dm_text', 'dm_quick_reply', 'dm_image', 'dm_story_reply'].includes(eventType)
@@ -301,6 +302,8 @@ async function upsertContact(
   const upsertData = {
     account_id: account.id,
     instagram_user_id: senderIgId,
+    ...(senderUsername ? { username: senderUsername } : {}),
+    // TODO: profile_pic_url só fica disponível quando o usuário envia DM (contexto de messaging)
     ...(isDmEvent ? {
       last_message_at: now.toISOString(),
       window_expires_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
@@ -318,46 +321,8 @@ async function upsertContact(
     return null
   }
 
-  // Se o contato não tem username, buscar perfil via Graph API (async, não bloqueia)
-  if (data && !data.username) {
-    fetchAndUpdateContactProfile(account, data.id, senderIgId).catch(() => {})
-  }
+  // TODO: profile_pic_url só disponível quando usuário envia DM (graph.instagram.com
+  // não retorna perfil de outros usuários em Development mode)
 
   return data
-}
-
-/**
- * Busca username, nome e foto do contato via Instagram Graph API.
- * Chamada async — não bloqueia o fluxo de automação.
- */
-async function fetchAndUpdateContactProfile(
-  account: AccountRow,
-  contactId: string,
-  igUserId: string
-): Promise<void> {
-  try {
-    const { decryptToken } = await import('@/lib/crypto/tokens')
-    const token = account.ig_access_token
-      ? decryptToken(account.ig_access_token)
-      : process.env.INSTAGRAM_DM_TOKEN
-
-    if (!token) return
-
-    const { graphApi } = await import('@/lib/meta/client')
-    const { data } = await graphApi<{ id: string; username?: string; name?: string; profile_picture_url?: string }>(
-      `https://graph.instagram.com/v21.0/${igUserId}?fields=id,username,name,profile_picture_url`,
-      { accessToken: token }
-    )
-
-    if (data?.username) {
-      const supabase = createServiceClient()
-      await supabase.from('contacts').update({
-        username: data.username,
-        full_name: data.name ?? null,
-        profile_pic_url: data.profile_picture_url ?? null,
-      }).eq('id', contactId)
-    }
-  } catch {
-    // Não falhar por causa de profile fetch
-  }
 }

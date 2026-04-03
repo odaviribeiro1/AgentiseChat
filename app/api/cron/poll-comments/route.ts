@@ -131,8 +131,9 @@ export async function GET(request: NextRequest) {
               type: 'comment',
               accountIgId: account.instagram_user_id,
               senderIgId: comment.from.id,
+              senderUsername: comment.from.username,
               timestamp: new Date(comment.timestamp),
-              raw: {} as MetaWebhookPayload, // polling não tem payload bruto
+              raw: {} as MetaWebhookPayload,
               comment: {
                 id: comment.id,
                 text: comment.text,

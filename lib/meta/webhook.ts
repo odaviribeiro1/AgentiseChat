@@ -58,6 +58,7 @@ export function parseWebhookPayload(
             type: 'comment',
             accountIgId: entry.id,
             senderIgId: change.value.from.id,
+            senderUsername: change.value.from.username,
             timestamp: new Date(change.value.timestamp * 1000),
             raw: payload,
             comment: {
