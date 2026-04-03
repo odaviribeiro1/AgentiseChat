@@ -84,6 +84,9 @@ export default async function AutomationsPage() {
                     <p className="text-xs font-semibold text-[#A0AEC0] uppercase tracking-wider">
                       {auto.status === 'active' ? 'Ligado' : auto.status === 'paused' ? 'Pausado' : 'Rascunho'}
                     </p>
+                    {(auto.total_runs ?? 0) > 0 && (
+                      <span className="text-xs text-[#718096]">· {auto.total_runs} disparo{auto.total_runs !== 1 ? 's' : ''}</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-auto pt-4 flex items-center justify-between text-xs text-[#718096] border-t border-[#E2E8F0]">
