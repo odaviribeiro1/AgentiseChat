@@ -17,7 +17,8 @@ export async function executeQuickReplyStep(
   if (ctx.triggerCommentId && ctx.isFirstMessage) {
     // 1. Enviar Private Reply com texto puro (abre a janela de mensagens)
     const { sendPrivateReply, sendQuickRepliesIg } = await import('@/lib/meta/messages')
-    result = await sendPrivateReply(ctx.triggerCommentId, text, ctx.account.access_token, ctx.igAccessToken)
+    // Private Reply abre a janela — usar texto curto para não duplicar com os botões
+    result = await sendPrivateReply(ctx.triggerCommentId, '📩', ctx.account.access_token, ctx.igAccessToken)
 
     if (!result) {
       return { success: false, nextStepId: null, error: 'Falha ao enviar Private Reply' }

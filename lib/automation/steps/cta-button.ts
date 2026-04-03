@@ -44,12 +44,14 @@ export async function executeCtaButtonStep(
   let result
   if (ctx.triggerCommentId && ctx.isFirstMessage) {
     const { sendPrivateReply, sendCtaButtonIg } = await import('@/lib/meta/messages')
-    result = await sendPrivateReply(ctx.triggerCommentId, text, ctx.account.access_token, ctx.igAccessToken)
+    // Private Reply abre a janela — usar texto curto para não duplicar com o template
+    result = await sendPrivateReply(ctx.triggerCommentId, '📩', ctx.account.access_token, ctx.igAccessToken)
 
     if (!result) {
       return { success: false, nextStepId: null, error: 'Falha ao enviar Private Reply' }
     }
 
+    // Delay + enviar template CTA com o texto real e os botões
     await sleep(2000)
     if (ctx.igAccessToken) {
       const ctaResult = await sendCtaButtonIg(

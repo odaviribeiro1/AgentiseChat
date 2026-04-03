@@ -19,7 +19,8 @@ export async function executeImageMessageStep(
   if (ctx.triggerCommentId && ctx.isFirstMessage) {
     // 1. Private Reply com legenda (abre janela)
     const { sendPrivateReply, sendImageMessageIg } = await import('@/lib/meta/messages')
-    result = await sendPrivateReply(ctx.triggerCommentId, caption || 'Confira o conteúdo!', ctx.account.access_token, ctx.igAccessToken)
+    // Private Reply abre a janela — usar texto curto para não duplicar com a imagem
+    result = await sendPrivateReply(ctx.triggerCommentId, '📩', ctx.account.access_token, ctx.igAccessToken)
 
     if (!result) {
       return { success: false, nextStepId: null, error: 'Falha ao enviar Private Reply' }
