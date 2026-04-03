@@ -1,9 +1,10 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, User, ShieldBan, ShieldCheck, Mail } from 'lucide-react'
+import { ArrowLeft, User, ShieldBan, ShieldCheck, Mail, Ban, CheckCircle2 } from 'lucide-react'
 import { isFuture, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { revalidatePath } from 'next/cache'
+import { TagManager } from '@/components/contacts/tag-manager'
 
 export default async function ContactProfilePage({ params }: { params: { id: string } }) {
   const supabase = createServiceClient()
@@ -18,11 +19,12 @@ export default async function ContactProfilePage({ params }: { params: { id: str
     return <div>Contato não encontrado.</div>
   }
 
-  const { data: messages } = await supabase
-    .from('messages')
-    .select('*')
-    .eq('contact_id', contact.id)
-    .order('sent_at', { ascending: true })
+  const [messagesResult, runsResult] = await Promise.all([
+    supabase.from('messages').select('*').eq('contact_id', contact.id).order('sent_at', { ascending: true }),
+    supabase.from('automation_runs').select('*, automations(name)').eq('contact_id', contact.id).order('started_at', { ascending: false }).limit(10),
+  ])
+  const messages = messagesResult.data
+  const runs = runsResult.data
 
   const inWindow = contact.window_expires_at ? isFuture(new Date(contact.window_expires_at)) : false
 
@@ -30,6 +32,13 @@ export default async function ContactProfilePage({ params }: { params: { id: str
     'use server'
     const db = createServiceClient()
     await db.from('contacts').update({ opted_out: !contact?.opted_out }).eq('id', params.id)
+    revalidatePath(`/contatos/${params.id}`)
+  }
+
+  async function toggleBlock() {
+    'use server'
+    const db = createServiceClient()
+    await db.from('contacts').update({ is_blocked: !contact?.is_blocked }).eq('id', params.id)
     revalidatePath(`/contatos/${params.id}`)
   }
 
@@ -69,21 +78,29 @@ export default async function ContactProfilePage({ params }: { params: { id: str
           </div>
         </div>
 
-        <div className="ml-auto">
-          <form action={toggleOptOut}>
-            <button 
+        <div className="ml-auto flex gap-2">
+          <form action={toggleBlock}>
+            <button
               type="submit"
-              className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border ${
-                contact.opted_out 
-                  ? 'bg-[#FFF5F5] border-[#E53E3E]/20 text-[#E53E3E] hover:bg-[#E53E3E] hover:text-white' 
-                  : 'bg-white border-[#E2E8F0] text-[#718096] hover:bg-[#F8F9FB] hover:text-[#1A202C]'
+              className={`px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border ${
+                contact.is_blocked
+                  ? 'bg-[#FFF5F5] border-[#E53E3E]/20 text-[#E53E3E]'
+                  : 'bg-white border-[#E2E8F0] text-[#718096] hover:bg-[#F8F9FB]'
               }`}
             >
-              {contact.opted_out ? (
-                <><ShieldCheck className="w-4 h-4" /> Desbloquear Contato</>
-              ) : (
-                <><ShieldBan className="w-4 h-4" /> Bloquear Mensagens (Opt-out)</>
-              )}
+              {contact.is_blocked ? <><CheckCircle2 className="w-4 h-4" /> Desbloquear</> : <><Ban className="w-4 h-4" /> Bloquear</>}
+            </button>
+          </form>
+          <form action={toggleOptOut}>
+            <button
+              type="submit"
+              className={`px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border ${
+                contact.opted_out
+                  ? 'bg-[#FFFBEB] border-[#D97706]/20 text-[#D97706]'
+                  : 'bg-white border-[#E2E8F0] text-[#718096] hover:bg-[#F8F9FB]'
+              }`}
+            >
+              {contact.opted_out ? <><ShieldCheck className="w-4 h-4" /> Reativar</> : <><ShieldBan className="w-4 h-4" /> Opt-out</>}
             </button>
           </form>
         </div>
@@ -103,18 +120,40 @@ export default async function ContactProfilePage({ params }: { params: { id: str
                 <span className="text-[#1A202C] font-mono text-xs">{contact.instagram_user_id}</span>
               </li>
               <li>
-                <span className="text-[#A0AEC0] block mb-1">Tags (Segmentação)</span>
-                <div className="flex flex-wrap gap-1">
-                  {contact.tags && contact.tags.length > 0 ? contact.tags.map((t: string) => (
-                    <span key={t} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#EBF3FF] text-[#2B7FFF] uppercase border border-[#2B7FFF]/20">
-                      {t}
-                    </span>
-                  )) : (
-                    <span className="text-[#718096] italic text-xs">Sem tags</span>
-                  )}
-                </div>
+                <TagManager contactId={contact.id} tags={(contact.tags as string[]) ?? []} />
               </li>
             </ul>
+          </div>
+
+          {/* Histórico de Automações */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6">
+            <h3 className="text-sm font-bold text-[#1A202C] uppercase tracking-wider mb-4 border-b border-[#E2E8F0] pb-2">Automações</h3>
+            {runs && runs.length > 0 ? (
+              <ul className="space-y-2">
+                {runs.map((run: any) => (
+                  <li key={run.id} className="flex items-center justify-between text-sm">
+                    <span className="text-[#1A202C] font-medium truncate max-w-[140px]">
+                      {run.automations?.name ?? 'Automação'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        run.status === 'completed' ? 'bg-[#F0FFF4] text-[#38A169]' :
+                        run.status === 'failed' ? 'bg-[#FFF5F5] text-[#E53E3E]' :
+                        run.status === 'waiting_reply' ? 'bg-[#FFFBEB] text-[#D97706]' :
+                        'bg-[#F8F9FB] text-[#718096]'
+                      }`}>
+                        {run.status}
+                      </span>
+                      <span className="text-[10px] text-[#A0AEC0]">
+                        {format(new Date(run.started_at || run.created_at), 'dd/MM HH:mm', { locale: ptBR })}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-[#A0AEC0] italic">Nenhuma automação executada</p>
+            )}
           </div>
         </div>
 
