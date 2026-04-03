@@ -105,6 +105,15 @@ export async function executeAutomationRun(
   console.log(`[Executor] Run ${runId} concluído com sucesso`)
 }
 
+async function applyTagToContact(contactId: string, tag: string): Promise<void> {
+  const supabase = createServiceClient()
+  const { data } = await supabase.from('contacts').select('tags').eq('id', contactId).single()
+  const currentTags: string[] = (data?.tags as string[]) ?? []
+  if (!currentTags.includes(tag)) {
+    await supabase.from('contacts').update({ tags: [...currentTags, tag] }).eq('id', contactId)
+  }
+}
+
 async function updateRunStatus(
   runId: string,
   status: 'running' | 'completed' | 'failed' | 'waiting_reply' | 'cancelled',
@@ -249,41 +258,42 @@ export async function resumeAutomationRun(
   }
 
   // ── Quick Reply: branching por clique de botão ─────────────────────────
-  const childSteps = steps.filter(s => s.parent_step_id === currentStep.id)
-  if (!childSteps.length) {
-    await updateRunStatus(run.id, 'completed')
-    return true
-  }
-
-  // Tenta bater a resposta com o branch_value
-  const nextStep = childSteps.find(s =>
-    s.branch_value && s.branch_value.toLowerCase() === payloadOrText.toLowerCase()
+  // 1. Buscar botão clicado pelo payload no config do step
+  const qrConfig = currentStep.config as unknown as import('@/lib/supabase/types').QuickReplyStepConfig
+  const clickedButton = qrConfig.buttons?.find(
+    b => b.payload.toLowerCase() === payloadOrText.toLowerCase()
   )
 
-  if (!nextStep) {
-    const defaultStep = childSteps.find(s => !s.branch_value)
-    if (defaultStep) {
-      await updateRunStatus(run.id, 'running')
-      try {
-        await executeAutomationRun(run.id, defaultStep.id, {
-          account,
-          contact,
-          allSteps: steps,
-          igAccessToken,
-        })
-      } catch (err) {
-        console.error('[Executor] Erro fatal no resume', err)
-      }
-      return true
-    }
-    return false
+  // 2. Aplicar tag se configurado no botão
+  if (clickedButton?.apply_tag) {
+    await applyTagToContact(contact.id, clickedButton.apply_tag)
+  }
+
+  // 3. Determinar próximo step: next_step_id do botão OU fallback para branch_value
+  let resolvedNextStep: typeof steps[number] | undefined
+
+  if (clickedButton?.next_step_id) {
+    resolvedNextStep = steps.find(s => s.id === clickedButton.next_step_id)
+  }
+
+  if (!resolvedNextStep) {
+    // Fallback: logica legada via parent_step_id + branch_value
+    const childSteps = steps.filter(s => s.parent_step_id === currentStep.id)
+    resolvedNextStep = childSteps.find(s =>
+      s.branch_value && s.branch_value.toLowerCase() === payloadOrText.toLowerCase()
+    ) ?? childSteps.find(s => !s.branch_value)
+  }
+
+  if (!resolvedNextStep) {
+    await updateRunStatus(run.id, 'completed')
+    return true
   }
 
   // Retomando no branch encontrado
   await updateRunStatus(run.id, 'running')
 
   try {
-    await executeAutomationRun(run.id, nextStep.id, {
+    await executeAutomationRun(run.id, resolvedNextStep.id, {
       account,
       contact,
       allSteps: steps,

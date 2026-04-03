@@ -190,9 +190,24 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
             )}
             {/* ... rest of step forms ... */}
             {selectedStep?.type === 'quick_reply' && (
-              <QuickReplyForm 
-                initialConfig={selectedStep.config as any} 
-                onChange={(c) => updateStepConfig(selectedStep.id, c)} 
+              <QuickReplyForm
+                initialConfig={selectedStep.config as any}
+                onChange={(c) => updateStepConfig(selectedStep.id, c)}
+                availableSteps={steps
+                  .filter(s => s.id !== selectedStep.id && !s.parent_step_id)
+                  .map(s => ({
+                    id: s.id,
+                    type: s.type,
+                    position: s.position,
+                    label: (() => {
+                      const labels: Record<string, string> = {
+                        message: 'Mensagem', image_message: 'Imagem', quick_reply: 'Respostas Rápidas',
+                        cta_button: 'Botão com Link', delay: 'Delay', ai: 'IA',
+                        condition: 'Condição', tag: 'Tag', end: 'Fim',
+                      }
+                      return labels[s.type] || s.type
+                    })(),
+                  }))}
               />
             )}
             {selectedStep?.type === 'delay' && (

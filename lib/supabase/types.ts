@@ -42,6 +42,8 @@ export interface ImageMessageStepConfig {
 export interface QuickReplyButton {
   title: string
   payload: string
+  next_step_id?: string   // ID do step a executar quando clicar
+  apply_tag?: string      // tag a aplicar ao contato quando clicar
 }
 
 export interface QuickReplyStepConfig {
