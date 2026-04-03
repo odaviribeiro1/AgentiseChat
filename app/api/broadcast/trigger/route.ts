@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { processBroadcast } from '@/lib/queue/broadcast'
 
 export async function GET(request: NextRequest) {
@@ -9,10 +9,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing broadcast ID' }, { status: 400 })
   }
 
-  // Promise fire and forget: processBroadcast é disparado em background
-  // No Vercel free tier, isso pode estourar o limite de tempo (10s), 
-  // mas para Serverless Edge/Pro ou container Node, isso roda independente.
-  processBroadcast(id).catch(console.error)
+  // Usar after() para manter a função viva na Vercel após o response
+  after(async () => {
+    try {
+      await processBroadcast(id)
+    } catch (err) {
+      console.error('[Broadcast/Trigger] Erro ao processar broadcast', { id, err })
+    }
+  })
 
   return NextResponse.json({ success: true, message: 'Broadcast triggered' })
 }

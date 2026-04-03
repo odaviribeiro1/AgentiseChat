@@ -69,3 +69,53 @@ export async function createBroadcast(formData: FormData) {
   revalidatePath('/broadcast')
   redirect('/broadcast')
 }
+
+export async function cancelBroadcast(broadcastId: string) {
+  const db = createServiceClient()
+  const { error } = await db
+    .from('broadcasts')
+    .update({ status: 'cancelled' })
+    .eq('id', broadcastId)
+    .in('status', ['draft', 'scheduled'])
+
+  if (error) {
+    console.error('[Broadcast] Falha ao cancelar:', error)
+    throw new Error('Falha ao cancelar broadcast')
+  }
+
+  revalidatePath('/broadcast')
+}
+
+export async function deleteBroadcast(broadcastId: string) {
+  const db = createServiceClient()
+  const { error } = await db
+    .from('broadcasts')
+    .delete()
+    .eq('id', broadcastId)
+    .in('status', ['draft', 'cancelled'])
+
+  if (error) {
+    console.error('[Broadcast] Falha ao excluir:', error)
+    throw new Error('Falha ao excluir broadcast')
+  }
+
+  revalidatePath('/broadcast')
+}
+
+export async function countEligibleContacts(accountId: string, tags?: string[]): Promise<number> {
+  const db = createServiceClient()
+  let query = db
+    .from('contacts')
+    .select('*', { count: 'exact', head: true })
+    .eq('account_id', accountId)
+    .gt('window_expires_at', new Date().toISOString())
+    .eq('opted_out', false)
+    .eq('is_blocked', false)
+
+  if (tags && tags.length > 0) {
+    query = query.contains('tags', tags)
+  }
+
+  const { count } = await query
+  return count ?? 0
+}

@@ -1,7 +1,9 @@
 import { createServiceClient } from '@/lib/supabase/server'
-import { sendTextMessage, sendImageMessage, sendCtaButton } from '@/lib/meta/messages'
+import { sendTextMessage, sendImageMessage, sendCtaButton, sendQuickRepliesIg, sendCtaButtonIg, sendImageMessageIg } from '@/lib/meta/messages'
 import { decryptToken } from '@/lib/crypto/tokens'
+import { graphApi } from '@/lib/meta/client'
 import type { BroadcastMessageConfig } from '@/lib/supabase/types'
+import type { MetaSendMessageResponse } from '@/lib/meta/types'
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
@@ -45,15 +47,23 @@ export async function processBroadcast(broadcastId: string) {
 
   if (!broadcast || broadcast.status === 'cancelled') return
 
-  // 3. Buscar o access_token da conta (decifrado)
+  // 3. Buscar tokens da conta (IGAA para messaging via graph.instagram.com)
   const { data: account } = await supabase
     .from('accounts')
-    .select('access_token')
+    .select('access_token, ig_access_token')
     .eq('id', broadcast.account_id)
     .eq('is_active', true)
     .maybeSingle()
 
-  const accessToken = account ? decryptToken(account.access_token) : undefined
+  const igAccessToken = account?.ig_access_token
+    ? decryptToken(account.ig_access_token)
+    : process.env.INSTAGRAM_DM_TOKEN
+
+  if (!igAccessToken) {
+    console.error('[Broadcast] Sem Instagram Token (IGAA) para enviar mensagens')
+    await supabase.from('broadcasts').update({ status: 'failed', error_message: 'Sem token IGAA' } as any).eq('id', broadcastId)
+    return
+  }
 
   // 4. Traz contatos válidos (dentro da janela 24h) com filtro de tags
   let query = supabase
@@ -92,58 +102,47 @@ export async function processBroadcast(broadcastId: string) {
   for (const contact of validContacts) {
     let result: { message_id: string } | null = null
 
+    // Enviar via graph.instagram.com com IGAA token
     if (messageConfig.type === 'text') {
       const text = messageConfig.text.replace('{{contact.first_name}}', contact.username ?? '')
-      result = await withRetry(() =>
-        sendTextMessage(contact.instagram_user_id, text, accessToken)
-      )
-      if (result?.message_id) {
-        await supabase.from('messages').insert({
-          account_id: broadcast.account_id,
-          contact_id: contact.id,
-          direction: 'outbound',
-          type: 'text',
-          content: { text },
-          meta_message_id: result.message_id,
-          broadcast_id: broadcastId,
-        })
-      }
+      result = await withRetry(async () => {
+        const { data } = await graphApi<MetaSendMessageResponse>(
+          'https://graph.instagram.com/v21.0/me/messages',
+          {
+            method: 'POST',
+            accessToken: igAccessToken,
+            body: { recipient: { id: contact.instagram_user_id }, message: { text } },
+          }
+        )
+        return data
+      })
     } else if (messageConfig.type === 'image' && messageConfig.image_url) {
       result = await withRetry(() =>
-        sendImageMessage(contact.instagram_user_id, messageConfig.image_url!, messageConfig.text || undefined, accessToken)
+        sendImageMessageIg(contact.instagram_user_id, messageConfig.image_url!, messageConfig.text || undefined, igAccessToken)
       )
-      if (result?.message_id) {
-        await supabase.from('messages').insert({
-          account_id: broadcast.account_id,
-          contact_id: contact.id,
-          direction: 'outbound',
-          type: 'image',
-          content: { image_url: messageConfig.image_url, caption: messageConfig.text },
-          meta_message_id: result.message_id,
-          broadcast_id: broadcastId,
-        })
-      }
     } else if (messageConfig.type === 'cta_button' && messageConfig.button) {
       result = await withRetry(() =>
-        sendCtaButton(
+        sendCtaButtonIg(
           contact.instagram_user_id,
           messageConfig.text,
           messageConfig.button!.title,
           messageConfig.button!.url,
-          accessToken
+          igAccessToken
         )
       )
-      if (result?.message_id) {
-        await supabase.from('messages').insert({
-          account_id: broadcast.account_id,
-          contact_id: contact.id,
-          direction: 'outbound',
-          type: 'cta_button',
-          content: { text: messageConfig.text, button: messageConfig.button },
-          meta_message_id: result.message_id,
-          broadcast_id: broadcastId,
-        })
-      }
+    }
+
+    // Registrar mensagem no log
+    if (result?.message_id) {
+      await supabase.from('messages').insert({
+        account_id: broadcast.account_id,
+        contact_id: contact.id,
+        direction: 'outbound',
+        type: messageConfig.type === 'image' ? 'image' : messageConfig.type === 'cta_button' ? 'cta_button' : 'text',
+        content: messageConfig as any,
+        meta_message_id: result.message_id,
+        broadcast_id: broadcastId,
+      })
     }
 
     if (result?.message_id) {
