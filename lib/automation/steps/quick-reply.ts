@@ -31,7 +31,7 @@ export async function executeQuickReplyStep(
     if (ctx.igAccessToken && config.buttons.length > 0) {
       const buttonsResult = await sendQuickRepliesIg(
         ctx.contact.instagram_user_id,
-        'Escolha uma opção:',
+        text,
         config.buttons,
         ctx.igAccessToken
       )
