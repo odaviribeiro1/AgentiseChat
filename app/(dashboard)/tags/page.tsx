@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { Tag, Users } from 'lucide-react'
 import { TagActions } from '@/components/tags/tag-actions'
+import { CreateTagButton } from '@/components/tags/create-tag-button'
 
 export default async function TagsPage() {
   const supabase = await createClient()
@@ -26,13 +27,12 @@ export default async function TagsPage() {
     )
   }
 
-  // Buscar todas as tags distintas com contagem
+  // Buscar tags de contatos (com contagem)
   const { data: contacts } = await serviceClient
     .from('contacts')
     .select('tags')
     .eq('account_id', account.id)
 
-  // Contar ocorrências de cada tag
   const tagCounts = new Map<string, number>()
   for (const contact of contacts ?? []) {
     const tags = (contact.tags as string[]) ?? []
@@ -41,28 +41,43 @@ export default async function TagsPage() {
     }
   }
 
+  // Buscar tags do registro (account_tags) — inclui tags sem contatos
+  const { data: registeredTags } = await serviceClient
+    .from('account_tags')
+    .select('name')
+    .eq('account_id', account.id)
+
+  for (const rt of registeredTags ?? []) {
+    if (!tagCounts.has(rt.name)) {
+      tagCounts.set(rt.name, 0)
+    }
+  }
+
   const sortedTags = Array.from(tagCounts.entries())
     .sort((a, b) => b[1] - a[1])
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-[#EBF3FF] text-[#2B7FFF] flex items-center justify-center">
-          <Tag className="w-5 h-5" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#EBF3FF] text-[#2B7FFF] flex items-center justify-center">
+            <Tag className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#1A202C]">Tags</h1>
+            <p className="text-sm text-[#718096] mt-0.5">
+              {sortedTags.length} tag{sortedTags.length !== 1 ? 's' : ''} em uso
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-[#1A202C]">Tags</h1>
-          <p className="text-sm text-[#718096] mt-0.5">
-            {sortedTags.length} tag{sortedTags.length !== 1 ? 's' : ''} em uso
-          </p>
-        </div>
+        <CreateTagButton accountId={account.id} />
       </div>
 
       {sortedTags.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-8 text-center">
           <Tag className="w-8 h-8 text-[#A0AEC0] mx-auto mb-3" />
           <p className="text-sm text-[#718096]">Nenhuma tag criada ainda.</p>
-          <p className="text-xs text-[#A0AEC0] mt-1">Tags são criadas automaticamente pelas automações.</p>
+          <p className="text-xs text-[#A0AEC0] mt-1">Crie uma tag ou elas serão criadas automaticamente pelas automações.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-[#E2E8F0] divide-y divide-[#E2E8F0]">
