@@ -12,8 +12,62 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      account_tags: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_tags_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           access_token: string
@@ -442,6 +496,65 @@ export type Database = {
           },
         ]
       }
+      content_analyses: {
+        Row: {
+          analyzed_at: string | null
+          broll_segments: Json | null
+          claude_model: string | null
+          cta: Json
+          development: Json
+          gemini_model: string | null
+          hook: Json
+          id: string
+          music_segments: Json | null
+          reel_id: string | null
+          sound_effects: Json | null
+          text_overlays: Json | null
+          transitions: Json | null
+          viral_patterns: Json | null
+        }
+        Insert: {
+          analyzed_at?: string | null
+          broll_segments?: Json | null
+          claude_model?: string | null
+          cta: Json
+          development: Json
+          gemini_model?: string | null
+          hook: Json
+          id?: string
+          music_segments?: Json | null
+          reel_id?: string | null
+          sound_effects?: Json | null
+          text_overlays?: Json | null
+          transitions?: Json | null
+          viral_patterns?: Json | null
+        }
+        Update: {
+          analyzed_at?: string | null
+          broll_segments?: Json | null
+          claude_model?: string | null
+          cta?: Json
+          development?: Json
+          gemini_model?: string | null
+          hook?: Json
+          id?: string
+          music_segments?: Json | null
+          reel_id?: string | null
+          sound_effects?: Json | null
+          text_overlays?: Json | null
+          transitions?: Json | null
+          viral_patterns?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_analyses_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: true
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       "Follow-up": {
         Row: {
           conversation_id: string | null
@@ -613,6 +726,90 @@ export type Database = {
           },
         ]
       }
+      processing_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          input_data: Json | null
+          job_type: string
+          output_data: Json | null
+          progress: number | null
+          started_at: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          job_type: string
+          output_data?: Json | null
+          progress?: number | null
+          started_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          job_type?: string
+          output_data?: Json | null
+          progress?: number | null
+          started_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          followers_count: number | null
+          full_name: string | null
+          id: string
+          instagram_username: string
+          last_scraped_at: string | null
+          profile_pic_url: string | null
+          profile_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          followers_count?: number | null
+          full_name?: string | null
+          id?: string
+          instagram_username: string
+          last_scraped_at?: string | null
+          profile_pic_url?: string | null
+          profile_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          followers_count?: number | null
+          full_name?: string | null
+          id?: string
+          instagram_username?: string
+          last_scraped_at?: string | null
+          profile_pic_url?: string | null
+          profile_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       rag_agentise: {
         Row: {
           content: string | null
@@ -633,6 +830,86 @@ export type Database = {
           metadata?: Json | null
         }
         Relationships: []
+      }
+      reels: {
+        Row: {
+          caption: string | null
+          comments_count: number | null
+          created_at: string | null
+          duration_seconds: number | null
+          engagement_score: number | null
+          hashtags: string[] | null
+          id: string
+          instagram_id: string
+          likes_count: number | null
+          mentions: string[] | null
+          music_artist: string | null
+          music_name: string | null
+          posted_at: string | null
+          profile_id: string | null
+          scraped_at: string | null
+          shares_count: number | null
+          shortcode: string | null
+          storage_path: string | null
+          thumbnail_url: string | null
+          video_url: string | null
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          engagement_score?: number | null
+          hashtags?: string[] | null
+          id?: string
+          instagram_id: string
+          likes_count?: number | null
+          mentions?: string[] | null
+          music_artist?: string | null
+          music_name?: string | null
+          posted_at?: string | null
+          profile_id?: string | null
+          scraped_at?: string | null
+          shares_count?: number | null
+          shortcode?: string | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          video_url?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          engagement_score?: number | null
+          hashtags?: string[] | null
+          id?: string
+          instagram_id?: string
+          likes_count?: number | null
+          mentions?: string[] | null
+          music_artist?: string | null
+          music_name?: string | null
+          posted_at?: string | null
+          profile_id?: string | null
+          scraped_at?: string | null
+          shares_count?: number | null
+          shortcode?: string | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          video_url?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reels_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registros_agendamento: {
         Row: {
@@ -657,6 +934,71 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Follow-up"
             referencedColumns: ["conversation_id"]
+          },
+        ]
+      }
+      scripts: {
+        Row: {
+          additional_instructions: string | null
+          created_at: string | null
+          editing_report: Json
+          estimated_duration_seconds: number | null
+          generation_model: string | null
+          id: string
+          reference_reel_ids: string[] | null
+          script_annotated: Json
+          script_teleprompter: string
+          status: string | null
+          title: string
+          topic: string
+          updated_at: string | null
+          user_id: string | null
+          viral_patterns_used: Json | null
+          voice_profile_id: string | null
+        }
+        Insert: {
+          additional_instructions?: string | null
+          created_at?: string | null
+          editing_report: Json
+          estimated_duration_seconds?: number | null
+          generation_model?: string | null
+          id?: string
+          reference_reel_ids?: string[] | null
+          script_annotated: Json
+          script_teleprompter: string
+          status?: string | null
+          title: string
+          topic: string
+          updated_at?: string | null
+          user_id?: string | null
+          viral_patterns_used?: Json | null
+          voice_profile_id?: string | null
+        }
+        Update: {
+          additional_instructions?: string | null
+          created_at?: string | null
+          editing_report?: Json
+          estimated_duration_seconds?: number | null
+          generation_model?: string | null
+          id?: string
+          reference_reel_ids?: string[] | null
+          script_annotated?: Json
+          script_teleprompter?: string
+          status?: string | null
+          title?: string
+          topic?: string
+          updated_at?: string | null
+          user_id?: string | null
+          viral_patterns_used?: Json | null
+          voice_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripts_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "voice_profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -704,6 +1046,106 @@ export type Database = {
             columns: ["parent_step_id"]
             isOneToOne: false
             referencedRelation: "steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transcriptions: {
+        Row: {
+          full_text: string
+          id: string
+          language: string | null
+          processed_at: string | null
+          reel_id: string | null
+          segments: Json
+          whisper_model: string | null
+        }
+        Insert: {
+          full_text: string
+          id?: string
+          language?: string | null
+          processed_at?: string | null
+          reel_id?: string | null
+          segments: Json
+          whisper_model?: string | null
+        }
+        Update: {
+          full_text?: string
+          id?: string
+          language?: string | null
+          processed_at?: string | null
+          reel_id?: string | null
+          segments?: Json
+          whisper_model?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transcriptions_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: true
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_profiles: {
+        Row: {
+          common_expressions: string[] | null
+          emotional_range: string | null
+          filler_words: string[] | null
+          full_profile_document: string
+          generated_at: string | null
+          id: string
+          pacing_style: string | null
+          profile_id: string | null
+          sentence_structure: string | null
+          source_reel_ids: string[] | null
+          speech_patterns: Json | null
+          tone_description: string | null
+          updated_at: string | null
+          user_id: string | null
+          vocabulary_style: string | null
+        }
+        Insert: {
+          common_expressions?: string[] | null
+          emotional_range?: string | null
+          filler_words?: string[] | null
+          full_profile_document: string
+          generated_at?: string | null
+          id?: string
+          pacing_style?: string | null
+          profile_id?: string | null
+          sentence_structure?: string | null
+          source_reel_ids?: string[] | null
+          speech_patterns?: Json | null
+          tone_description?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vocabulary_style?: string | null
+        }
+        Update: {
+          common_expressions?: string[] | null
+          emotional_range?: string | null
+          filler_words?: string[] | null
+          full_profile_document?: string
+          generated_at?: string | null
+          id?: string
+          pacing_style?: string | null
+          profile_id?: string | null
+          sentence_structure?: string | null
+          source_reel_ids?: string[] | null
+          speech_patterns?: Json | null
+          tone_description?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vocabulary_style?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -883,6 +1325,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
