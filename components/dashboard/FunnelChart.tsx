@@ -20,16 +20,16 @@ interface FunnelChartProps {
   data: FunnelDataPoint[]
 }
 
-const COLORS = ['#2B7FFF', '#3182ce', '#38A169']
+const COLORS = ['#3B82F6', '#3B82F6', '#10B981']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload as FunnelDataPoint
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-sm px-3 py-2 text-xs">
-      <p className="font-semibold text-[#1A202C]">{d.stage}</p>
-      <p className="text-[#4A5568]">
+    <div className="bg-[rgba(15,18,35,0.6)] border border-[rgba(59,130,246,0.15)] rounded-lg shadow-sm px-3 py-2 text-xs">
+      <p className="font-semibold text-[#F8FAFC]">{d.stage}</p>
+      <p className="text-[#CBD5E1]">
         {d.count} run{d.count !== 1 ? 's' : ''} ({d.pct}%)
       </p>
     </div>
@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 export function FunnelChart({ data }: FunnelChartProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-[200px] text-sm text-[#A0AEC0]">
+      <div className="flex items-center justify-center h-[200px] text-sm text-[#64748B]">
         Nenhum dado disponível ainda.
       </div>
     )
@@ -57,11 +57,11 @@ export function FunnelChart({ data }: FunnelChartProps) {
           type="category"
           dataKey="stage"
           width={140}
-          tick={{ fill: '#4A5568', fontSize: 13, fontFamily: 'Nunito, Inter, sans-serif' }}
+          tick={{ fill: '#CBD5E1', fontSize: 13, fontFamily: 'Nunito, Inter, sans-serif' }}
           axisLine={false}
           tickLine={false}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F0F2F5' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#0A0A0F' }} />
         <Bar dataKey="count" radius={[0, 6, 6, 0]} maxBarSize={32}>
           {data.map((_, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

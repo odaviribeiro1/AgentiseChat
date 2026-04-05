@@ -40,20 +40,20 @@ export function TagActions({ tag, accountId }: TagActionsProps) {
           value={newName}
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleRename()}
-          className="border border-[#E2E8F0] rounded-lg px-2 py-1 text-sm w-32 focus:ring-[#2B7FFF] focus:border-[#2B7FFF]"
+          className="border border-[rgba(59,130,246,0.15)] rounded-lg px-2 py-1 text-sm w-32 focus:ring-[#3B82F6] focus:border-[#3B82F6]"
           autoFocus
           disabled={loading}
         />
         <button
           onClick={handleRename}
           disabled={loading}
-          className="text-xs font-semibold text-[#2B7FFF] hover:underline disabled:opacity-50"
+          className="text-xs font-semibold text-[#3B82F6] hover:underline disabled:opacity-50"
         >
           Salvar
         </button>
         <button
           onClick={() => { setRenaming(false); setNewName(tag) }}
-          className="text-xs text-[#718096] hover:underline"
+          className="text-xs text-[#94A3B8] hover:underline"
         >
           Cancelar
         </button>
@@ -66,7 +66,7 @@ export function TagActions({ tag, accountId }: TagActionsProps) {
       <button
         onClick={() => setRenaming(true)}
         disabled={loading}
-        className="p-2 text-[#718096] hover:text-[#2B7FFF] hover:bg-[#EBF3FF] rounded-lg transition-colors disabled:opacity-50"
+        className="p-2 text-[#94A3B8] hover:text-[#3B82F6] hover:bg-[rgba(59,130,246,0.12)] rounded-lg transition-colors disabled:opacity-50"
         title="Renomear"
       >
         <Pencil className="w-4 h-4" />
@@ -74,7 +74,7 @@ export function TagActions({ tag, accountId }: TagActionsProps) {
       <button
         onClick={handleDelete}
         disabled={loading}
-        className="p-2 text-[#718096] hover:text-[#E53E3E] hover:bg-[#FFF5F5] rounded-lg transition-colors disabled:opacity-50"
+        className="p-2 text-[#94A3B8] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)] rounded-lg transition-colors disabled:opacity-50"
         title="Excluir de todos os contatos"
       >
         <Trash2 className="w-4 h-4" />

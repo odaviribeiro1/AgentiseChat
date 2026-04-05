@@ -40,20 +40,20 @@ export function CreateTagButton({ accountId }: CreateTagButtonProps) {
           onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleCreate()}
           placeholder="Nome da tag"
-          className="border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-[#2B7FFF] focus:border-[#2B7FFF]"
+          className="border border-[rgba(59,130,246,0.15)] rounded-lg px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-[#3B82F6]"
           autoFocus
           disabled={loading}
         />
         <button
           onClick={handleCreate}
           disabled={loading || !name.trim()}
-          className="bg-[#2B7FFF] hover:bg-[#1A6FEF] text-white text-sm font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-sm font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
         >
           Criar
         </button>
         <button
           onClick={() => { setOpen(false); setName('') }}
-          className="text-sm text-[#718096] hover:underline"
+          className="text-sm text-[#94A3B8] hover:underline"
         >
           Cancelar
         </button>
@@ -64,7 +64,7 @@ export function CreateTagButton({ accountId }: CreateTagButtonProps) {
   return (
     <button
       onClick={() => setOpen(true)}
-      className="bg-[#2B7FFF] hover:bg-[#1A6FEF] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+      className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
     >
       <Plus className="w-4 h-4" />
       Criar Tag

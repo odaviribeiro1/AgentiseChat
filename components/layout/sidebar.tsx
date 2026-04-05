@@ -42,12 +42,12 @@ export function Sidebar({ user }: SidebarProps) {
 
   return (
     <aside
-      className="flex flex-col h-screen bg-[#0F1729] transition-all duration-200 flex-shrink-0"
+      className="glass-sidebar flex flex-col h-screen transition-all duration-200 flex-shrink-0 relative z-10"
       style={{ width: collapsed ? '64px' : '256px' }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-[#1A2540]">
-        <div className="w-8 h-8 rounded-lg bg-[#2B7FFF] flex items-center justify-center flex-shrink-0">
+      <div className="flex items-center gap-3 px-4 h-16 border-b border-[rgba(59,130,246,0.08)]">
+        <div className="w-8 h-8 rounded-lg bg-[#3B82F6] flex items-center justify-center flex-shrink-0">
           <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
             <path d="M9 2L14 5.5V12.5L9 16L4 12.5V5.5L9 2Z" fill="white" opacity="0.9"/>
             <circle cx="9" cy="9" r="2.5" fill="white"/>
@@ -63,7 +63,7 @@ export function Sidebar({ user }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
         {!collapsed && (
-          <p className="px-2 mb-2 text-[10px] uppercase tracking-widest text-[#4A5568] font-medium">
+          <p className="px-2 mb-2 text-[10px] uppercase tracking-widest text-[#CBD5E1] font-medium">
             Menu
           </p>
         )}
@@ -76,8 +76,8 @@ export function Sidebar({ user }: SidebarProps) {
               title={collapsed ? label : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive
-                  ? 'bg-[#1E3A5F] text-white font-semibold'
-                  : 'text-[#8B9BB4] hover:bg-[#1A2540] hover:text-white'
+                  ? 'bg-[rgba(59,130,246,0.15)] text-white font-semibold'
+                  : 'text-[#94A3B8] hover:bg-[rgba(59,130,246,0.08)] hover:text-white'
               }`}
             >
               <Icon size={18} className="flex-shrink-0" />
@@ -88,10 +88,10 @@ export function Sidebar({ user }: SidebarProps) {
       </nav>
 
       {/* Recolher */}
-      <div className="px-2 pb-2 border-t border-[#1A2540] pt-2">
+      <div className="px-2 pb-2 border-t border-[rgba(59,130,246,0.08)] pt-2">
         <button
           onClick={() => setCollapsed(v => !v)}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-[#8B9BB4] hover:bg-[#1A2540] hover:text-white transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-[#94A3B8] hover:bg-[rgba(59,130,246,0.08)] hover:text-white transition-colors"
         >
           <ChevronLeft
             size={18}
@@ -102,13 +102,13 @@ export function Sidebar({ user }: SidebarProps) {
       </div>
 
       {/* Usuário + Logout */}
-      <div className="px-2 pb-4 border-t border-[#1A2540] pt-3">
+      <div className="px-2 pb-4 border-t border-[rgba(59,130,246,0.08)] pt-3">
         <div className={`flex items-center gap-3 px-3 py-2 mb-1 ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-7 h-7 rounded-full bg-[#2B7FFF] flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
+          <div className="w-7 h-7 rounded-full bg-[#3B82F6] flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
             {user.email?.[0]?.toUpperCase() ?? 'U'}
           </div>
           {!collapsed && (
-            <span className="text-xs text-[#8B9BB4] truncate flex-1">
+            <span className="text-xs text-[#94A3B8] truncate flex-1">
               {user.email}
             </span>
           )}
@@ -116,7 +116,7 @@ export function Sidebar({ user }: SidebarProps) {
         <button
           onClick={handleLogout}
           title={collapsed ? 'Sair' : undefined}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-[#8B9BB4] hover:bg-[#1A2540] hover:text-red-400 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-[#94A3B8] hover:bg-[rgba(59,130,246,0.08)] hover:text-red-400 transition-colors"
         >
           <LogOut size={18} className="flex-shrink-0" />
           {!collapsed && <span>Sair</span>}

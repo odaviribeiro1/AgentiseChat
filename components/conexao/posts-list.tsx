@@ -11,11 +11,11 @@ interface PostsListProps {
 function PostSkeleton() {
   return (
     <div className="bg-[#F7FAFC] rounded-lg overflow-hidden animate-pulse">
-      <div className="aspect-square bg-[#E2E8F0]" />
+      <div className="aspect-square bg-[rgba(59,130,246,0.15)]" />
       <div className="p-3 space-y-2">
-        <div className="h-3 bg-[#E2E8F0] rounded w-16" />
-        <div className="h-3 bg-[#E2E8F0] rounded w-full" />
-        <div className="h-3 bg-[#E2E8F0] rounded w-3/4" />
+        <div className="h-3 bg-[rgba(59,130,246,0.15)] rounded w-16" />
+        <div className="h-3 bg-[rgba(59,130,246,0.15)] rounded w-full" />
+        <div className="h-3 bg-[rgba(59,130,246,0.15)] rounded w-3/4" />
       </div>
     </div>
   )
@@ -49,13 +49,13 @@ export function PostsList({ accountId }: PostsListProps) {
   }, [accountId])
 
   return (
-    <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
+    <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-[#1A202C]">Posts e Reels</h2>
+        <h2 className="text-sm font-semibold text-[#F8FAFC]">Posts e Reels</h2>
         {!loading && (
           <button
             onClick={fetchPosts}
-            className="flex items-center gap-1.5 text-xs text-[#718096] hover:text-[#2D3748] transition-colors"
+            className="flex items-center gap-1.5 text-xs text-[#94A3B8] hover:text-[#CBD5E1] transition-colors"
           >
             <RefreshCw size={12} />
             Atualizar
@@ -73,10 +73,10 @@ export function PostsList({ accountId }: PostsListProps) {
 
       {error && (
         <div className="flex flex-col items-center py-8 text-center">
-          <p className="text-sm text-[#E53E3E] mb-3">{error}</p>
+          <p className="text-sm text-[#EF4444] mb-3">{error}</p>
           <button
             onClick={fetchPosts}
-            className="px-4 py-2 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#718096] hover:bg-[#F7FAFC] transition-colors"
+            className="px-4 py-2 rounded-lg border border-[rgba(59,130,246,0.15)] text-xs font-medium text-[#94A3B8] hover:bg-[#F7FAFC] transition-colors"
           >
             Tentar novamente
           </button>
@@ -85,15 +85,15 @@ export function PostsList({ accountId }: PostsListProps) {
 
       {!loading && !error && posts.length === 0 && (
         <div className="flex flex-col items-center py-8 text-center">
-          <ImageIcon size={32} className="text-[#CBD5E0] mb-2" />
-          <p className="text-sm text-[#718096]">Nenhum post encontrado</p>
+          <ImageIcon size={32} className="text-[rgba(59,130,246,0.2)] mb-2" />
+          <p className="text-sm text-[#94A3B8]">Nenhum post encontrado</p>
         </div>
       )}
 
       {!loading && !error && posts.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {posts.map(post => (
-            <div key={post.id} className="rounded-lg border border-[#E2E8F0] overflow-hidden group">
+            <div key={post.id} className="rounded-lg border border-[rgba(59,130,246,0.15)] overflow-hidden group">
               {/* Thumbnail */}
               <div className="aspect-square bg-[#F7FAFC] relative overflow-hidden">
                 {post.thumbnail_url ? (
@@ -105,15 +105,15 @@ export function PostsList({ accountId }: PostsListProps) {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     {post.media_product_type === 'REEL' ? (
-                      <Film size={24} className="text-[#CBD5E0]" />
+                      <Film size={24} className="text-[rgba(59,130,246,0.2)]" />
                     ) : (
-                      <ImageIcon size={24} className="text-[#CBD5E0]" />
+                      <ImageIcon size={24} className="text-[rgba(59,130,246,0.2)]" />
                     )}
                   </div>
                 )}
                 {/* Badge tipo */}
                 <span className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold text-white ${
-                  post.media_product_type === 'REEL' ? 'bg-[#833AB4]' : 'bg-[#2B7FFF]'
+                  post.media_product_type === 'REEL' ? 'bg-[#833AB4]' : 'bg-[#3B82F6]'
                 }`}>
                   {post.media_product_type}
                 </span>
@@ -131,11 +131,11 @@ export function PostsList({ accountId }: PostsListProps) {
               {/* Info */}
               <div className="p-2.5">
                 {post.caption && (
-                  <p className="text-xs text-[#2D3748] line-clamp-2 mb-1.5">
+                  <p className="text-xs text-[#CBD5E1] line-clamp-2 mb-1.5">
                     {post.caption}
                   </p>
                 )}
-                <div className="flex items-center justify-between text-[10px] text-[#A0AEC0]">
+                <div className="flex items-center justify-between text-[10px] text-[#64748B]">
                   <span>
                     {new Date(post.timestamp).toLocaleDateString('pt-BR', {
                       day: '2-digit',

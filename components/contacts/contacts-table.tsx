@@ -29,14 +29,14 @@ const columns = [
           <img
             src={info.row.original.profile_pic_url}
             alt="Avatar"
-            className="w-10 h-10 rounded-full bg-[#E2E8F0] object-cover"
+            className="w-10 h-10 rounded-full bg-[rgba(59,130,246,0.15)] object-cover"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-[#EBF3FF] text-[#2B7FFF] flex items-center justify-center font-bold text-sm">
+          <div className="w-10 h-10 rounded-full bg-[rgba(59,130,246,0.12)] text-[#3B82F6] flex items-center justify-center font-bold text-sm">
             {(info.getValue() ?? '?').charAt(0).toUpperCase()}
           </div>
         )}
-        <div className="font-semibold text-[#1A202C]">@{info.getValue() ?? ''}</div>
+        <div className="font-semibold text-[#F8FAFC]">@{info.getValue() ?? ''}</div>
       </div>
     ),
   }),
@@ -49,7 +49,7 @@ const columns = [
       return (
         <div className="flex items-center gap-2">
           {inWindow ? (
-            <div className="px-2.5 py-1 bg-[#DEF7EC] text-[#03543F] rounded-full flex items-center gap-1.5 border border-[#31C48D]/20">
+            <div className="px-2.5 py-1 bg-[rgba(16,185,129,0.12)] text-[#03543F] rounded-full flex items-center gap-1.5 border border-[#31C48D]/20">
               <div className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -57,8 +57,8 @@ const columns = [
               <span className="text-[10px] font-bold uppercase tracking-tight">Dentro da Janela</span>
             </div>
           ) : (
-            <div className="px-2.5 py-1 bg-[#F3F4F6] text-[#718096] rounded-full flex items-center gap-1.5 border border-[#E2E8F0]">
-              <div className="h-2 w-2 rounded-full bg-[#CBD5E0]"></div>
+            <div className="px-2.5 py-1 bg-[#0F1223] text-[#94A3B8] rounded-full flex items-center gap-1.5 border border-[rgba(59,130,246,0.15)]">
+              <div className="h-2 w-2 rounded-full bg-[rgba(59,130,246,0.2)]"></div>
               <span className="text-[10px] font-bold uppercase tracking-tight text-[#94A3B8]">Janela Fechada</span>
             </div>
           )}
@@ -76,13 +76,13 @@ const columns = [
             tags.map((t) => (
               <span
                 key={t}
-                className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#E2E8F0] text-[#4A5568] uppercase"
+                className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[rgba(59,130,246,0.15)] text-[#CBD5E1] uppercase"
               >
                 {t}
               </span>
             ))
           ) : (
-            <span className="text-xs text-[#A0AEC0]">-</span>
+            <span className="text-xs text-[#64748B]">-</span>
           )}
         </div>
       )
@@ -91,7 +91,7 @@ const columns = [
   columnHelper.accessor('created_at', {
     header: 'Capturado em',
     cell: (info) => (
-      <span className="text-sm text-[#718096]">
+      <span className="text-sm text-[#94A3B8]">
         {format(new Date(info.getValue() || new Date()), "dd 'de' MMM, yyyy", {
           locale: ptBR,
         })}
@@ -103,7 +103,7 @@ const columns = [
     cell: (info) => (
       <Link
         href={`/contatos/${info.row.original.id}`}
-        className="text-[#2B7FFF] font-semibold hover:text-[#1A6FEF] text-sm"
+        className="text-[#3B82F6] font-semibold hover:text-[#2563EB] text-sm"
       >
         Ver Perfil
       </Link>
@@ -157,13 +157,13 @@ export function ContactsTable({ data }: ContactsTableProps) {
       <div className="flex flex-wrap gap-3 items-center">
         {/* Busca por username */}
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por @usuário..."
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#2B7FFF]/20 focus:border-[#2B7FFF] transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-[rgba(15,18,35,0.6)] border border-[rgba(59,130,246,0.15)] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
           />
         </div>
 
@@ -171,7 +171,7 @@ export function ContactsTable({ data }: ContactsTableProps) {
         <select
           value={windowFilter}
           onChange={(e) => setWindowFilter(e.target.value as typeof windowFilter)}
-          className="px-3 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#4A5568] outline-none focus:ring-2 focus:ring-[#2B7FFF]/20 focus:border-[#2B7FFF] cursor-pointer"
+          className="px-3 py-2 bg-[rgba(15,18,35,0.6)] border border-[rgba(59,130,246,0.15)] rounded-lg text-sm text-[#CBD5E1] outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] cursor-pointer"
         >
           <option value="all">Todas as janelas</option>
           <option value="active">Janela ativa</option>
@@ -183,7 +183,7 @@ export function ContactsTable({ data }: ContactsTableProps) {
           <select
             value={tagFilter}
             onChange={(e) => setTagFilter(e.target.value)}
-            className="px-3 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#4A5568] outline-none focus:ring-2 focus:ring-[#2B7FFF]/20 focus:border-[#2B7FFF] cursor-pointer"
+            className="px-3 py-2 bg-[rgba(15,18,35,0.6)] border border-[rgba(59,130,246,0.15)] rounded-lg text-sm text-[#CBD5E1] outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] cursor-pointer"
           >
             <option value="">Todas as tags</option>
             {allTags.map((tag) => (
@@ -195,24 +195,24 @@ export function ContactsTable({ data }: ContactsTableProps) {
         )}
 
         {/* Contador de resultados */}
-        <span className="text-xs text-[#718096] ml-auto shrink-0">
+        <span className="text-xs text-[#94A3B8] ml-auto shrink-0">
           Exibindo{' '}
-          <strong className="text-[#1A202C]">{filteredData.length}</strong> de{' '}
-          <strong className="text-[#1A202C]">{data.length}</strong> contatos
+          <strong className="text-[#F8FAFC]">{filteredData.length}</strong> de{' '}
+          <strong className="text-[#F8FAFC]">{data.length}</strong> contatos
         </span>
       </div>
 
       {/* Tabela */}
-      <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] overflow-hidden">
+      <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-[#F8F9FB] border-b border-[#E2E8F0]">
+            <thead className="bg-[#0F1223] border-b border-[rgba(59,130,246,0.15)]">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-6 py-4 text-xs font-semibold text-[#718096] uppercase tracking-wider"
+                      className="px-6 py-4 text-xs font-semibold text-[#94A3B8] uppercase tracking-wider"
                     >
                       {header.isPlaceholder
                         ? null
@@ -226,7 +226,7 @@ export function ContactsTable({ data }: ContactsTableProps) {
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-[#E2E8F0] hover:bg-[#F8F9FB] transition-colors last:border-0"
+                  className="border-b border-[rgba(59,130,246,0.15)] hover:bg-[#0F1223] transition-colors last:border-0"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-6 py-4">
@@ -239,7 +239,7 @@ export function ContactsTable({ data }: ContactsTableProps) {
           </table>
 
           {filteredData.length === 0 && (
-            <div className="p-12 text-center text-[#718096]">
+            <div className="p-12 text-center text-[#94A3B8]">
               {data.length === 0
                 ? 'Nenhum contato encontrado na sua base.'
                 : 'Nenhum contato corresponde aos filtros aplicados.'}

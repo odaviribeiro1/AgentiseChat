@@ -24,23 +24,23 @@ export default async function ConexaoPage({ searchParams }: ConexaoPageProps) {
     <div className="max-w-3xl">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1A202C]">Conexão Instagram</h1>
-        <p className="text-sm text-[#718096] mt-0.5">
+        <h1 className="text-2xl font-bold text-[#F8FAFC]">Conexão Instagram</h1>
+        <p className="text-sm text-[#94A3B8] mt-0.5">
           Conecte sua conta Instagram Business ou Creator para ativar as automações
         </p>
       </div>
 
       {/* Feedback OAuth */}
       {params.success && (
-        <div className="mb-6 p-4 bg-[#F0FFF4] border border-[#38A169] rounded-xl">
-          <p className="text-sm font-medium text-[#38A169]">
+        <div className="mb-6 p-4 bg-[rgba(16,185,129,0.12)] border border-[#10B981] rounded-xl">
+          <p className="text-sm font-medium text-[#10B981]">
             ✓ Conta Instagram conectada com sucesso!
           </p>
         </div>
       )}
       {params.error && (
-        <div className="mb-6 p-4 bg-[#FFF5F5] border border-[#E53E3E] rounded-xl">
-          <p className="text-sm font-medium text-[#E53E3E]">
+        <div className="mb-6 p-4 bg-[rgba(239,68,68,0.12)] border border-[#EF4444] rounded-xl">
+          <p className="text-sm font-medium text-[#EF4444]">
             Erro ao conectar: {getErrorMessage(params.error)}
           </p>
         </div>

@@ -106,11 +106,11 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
       {/* Coluna da Esquerda: Lista de Steps (DND) + Trigger */}
       <div className="w-1/2 flex flex-col gap-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-bold text-[#1A202C]">Fluxo da Automação</h2>
+          <h2 className="text-xl font-bold text-[#F8FAFC]">Fluxo da Automação</h2>
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-[#2B7FFF] hover:bg-[#1A6FEF] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
@@ -122,23 +122,23 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
           onClick={() => selectStep('trigger')}
           className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
             isTriggerSelected 
-              ? 'bg-[#EBF3FF] border-[#2B7FFF] shadow-md shadow-[#2B7FFF]/10' 
-              : 'bg-white border-[#E2E8F0] hover:border-[#2B7FFF]/50'
+              ? 'bg-[rgba(59,130,246,0.12)] border-[#3B82F6] shadow-md shadow-[#3B82F6]/10' 
+              : 'bg-[rgba(15,18,35,0.6)] border-[rgba(59,130,246,0.15)] hover:border-[#3B82F6]/50'
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className="bg-[#2B7FFF] text-white p-2 rounded-lg">
+            <div className="bg-[#3B82F6] text-white p-2 rounded-lg">
               <Hash className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#2B7FFF]">Gatilho de Entrada</p>
-              <h3 className="font-bold text-[#1A202C]">Configurar Palavra-chave</h3>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#3B82F6]">Gatilho de Entrada</p>
+              <h3 className="font-bold text-[#F8FAFC]">Configurar Palavra-chave</h3>
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-center py-2 h-8">
-           <div className="w-0.5 h-full bg-[#E2E8F0]"></div>
+           <div className="w-0.5 h-full bg-[rgba(59,130,246,0.15)]"></div>
         </div>
 
         <DndContext 
@@ -159,7 +159,7 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
         </DndContext>
 
         <StepTypeSelector onSelect={(type) => addStep(type)}>
-          <button className="flex items-center justify-center gap-2 w-full py-4 mt-2 border-2 border-dashed border-[#CBD5E0] bg-[#F8F9FB] hover:bg-white hover:border-[#2B7FFF] text-[#4A5568] hover:text-[#2B7FFF] transition-colors rounded-xl font-semibold">
+          <button className="flex items-center justify-center gap-2 w-full py-4 mt-2 border-2 border-dashed border-[rgba(59,130,246,0.2)] bg-[#0F1223] hover:bg-[rgba(15,18,35,0.6)] hover:border-[#3B82F6] text-[#CBD5E1] hover:text-[#3B82F6] transition-colors rounded-xl font-semibold">
             <Plus className="w-5 h-5" />
             Adicionar Passo
           </button>
@@ -169,8 +169,8 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
       {/* Coluna Central: Edição do Step/Trigger Selecionado */}
       <div className="w-1/2">
         {(selectedStep || isTriggerSelected) ? (
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 sticky top-8">
-            <h3 className="text-lg font-bold text-[#1A202C] mb-6 border-b border-[#E2E8F0] pb-4">
+          <div className="glass-card p-6 sticky top-8">
+            <h3 className="text-lg font-bold text-[#F8FAFC] mb-6 border-b border-[rgba(59,130,246,0.15)] pb-4">
               {isTriggerSelected ? 'Configurar Gatilho' : 'Configurar Passo'}
             </h3>
             
@@ -263,7 +263,7 @@ export function BuilderBoard({ automationId, initialSteps, initialTriggerType, i
             )}
           </div>
         ) : (
-          <div className="bg-[#F8F9FB] rounded-xl border border-dashed border-[#E2E8F0] h-[300px] flex items-center justify-center text-[#A0AEC0] sticky top-8 font-medium">
+          <div className="bg-[#0F1223] rounded-xl border border-dashed border-[rgba(59,130,246,0.15)] h-[300px] flex items-center justify-center text-[#64748B] sticky top-8 font-medium">
             Selecione o Gatilho ou um passo para configurar
           </div>
         )}

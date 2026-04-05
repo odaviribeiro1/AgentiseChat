@@ -65,12 +65,12 @@ export function ConditionStepForm({ initialConfig, onChange }: ConditionStepForm
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-[#1A202C]">Verificar campo</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">Verificar campo</Label>
         <Select
           value={watch('field')}
           onValueChange={(v) => setValue('field', v as ConditionStepConfig['field'])}
         >
-          <SelectTrigger className="w-full border-[#E2E8F0] focus:ring-[#2B7FFF]">
+          <SelectTrigger className="w-full border-[rgba(59,130,246,0.15)] focus:ring-[#3B82F6]">
             <SelectValue placeholder="Selecionar campo" />
           </SelectTrigger>
           <SelectContent>
@@ -82,12 +82,12 @@ export function ConditionStepForm({ initialConfig, onChange }: ConditionStepForm
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-[#1A202C]">Condição</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">Condição</Label>
         <Select
           value={watch('operator')}
           onValueChange={(v) => setValue('operator', v as ConditionStepConfig['operator'])}
         >
-          <SelectTrigger className="w-full border-[#E2E8F0] focus:ring-[#2B7FFF]">
+          <SelectTrigger className="w-full border-[rgba(59,130,246,0.15)] focus:ring-[#3B82F6]">
             <SelectValue placeholder="Selecionar condição" />
           </SelectTrigger>
           <SelectContent>
@@ -108,20 +108,20 @@ export function ConditionStepForm({ initialConfig, onChange }: ConditionStepForm
 
       {field === 'tag' && (
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-[#1A202C]">Nome da tag</Label>
+          <Label className="text-sm font-medium text-[#F8FAFC]">Nome da tag</Label>
           <Input
             {...register('value')}
             placeholder="Ex: cliente-vip"
-            className="border-[#E2E8F0] focus:ring-[#2B7FFF]"
+            className="border-[rgba(59,130,246,0.15)] focus:ring-[#3B82F6]"
           />
           {errors.value && (
-            <p className="text-xs text-[#E53E3E]">{errors.value.message}</p>
+            <p className="text-xs text-[#EF4444]">{errors.value.message}</p>
           )}
         </div>
       )}
 
-      <div className="mt-4 rounded-lg bg-[#EBF3FF] p-3">
-        <p className="text-xs text-[#4A5568]">
+      <div className="mt-4 rounded-lg bg-[rgba(59,130,246,0.12)] p-3">
+        <p className="text-xs text-[#CBD5E1]">
           Configure uma condição para bifurcar o fluxo. O ramo verdadeiro ou falso
           será seguido com base no resultado da verificação.
         </p>

@@ -41,27 +41,27 @@ export function ImageMessageStepForm({ initialConfig, onChange }: ImageMessageSt
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-[#1A202C]">URL da Imagem</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">URL da Imagem</Label>
         <Input
           {...register('image_url')}
           placeholder="https://exemplo.com/imagem.jpg"
           type="url"
-          className="border-[#E2E8F0] focus:ring-[#2B7FFF]"
+          className="border-[rgba(59,130,246,0.15)] focus:ring-[#3B82F6]"
         />
         {errors.image_url && (
-          <p className="text-xs text-[#E53E3E]">{errors.image_url.message}</p>
+          <p className="text-xs text-[#EF4444]">{errors.image_url.message}</p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-[#1A202C]">Legenda (opcional)</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">Legenda (opcional)</Label>
         <Textarea
           {...register('caption')}
           placeholder="Ex: Confira nossa oferta especial!"
-          className="w-full border border-[#E2E8F0] rounded-lg px-4 py-3 text-sm text-[#1A202C] bg-[#F8F9FB] placeholder:text-[#A0AEC0] focus:ring-[#2B7FFF] min-h-[80px] resize-y"
+          className="w-full border border-[rgba(59,130,246,0.15)] rounded-lg px-4 py-3 text-sm text-[#F8FAFC] bg-[#0F1223] placeholder:text-[#64748B] focus:ring-[#3B82F6] min-h-[80px] resize-y"
         />
         {errors.caption && (
-          <p className="text-xs text-[#E53E3E]">{errors.caption.message}</p>
+          <p className="text-xs text-[#EF4444]">{errors.caption.message}</p>
         )}
       </div>
     </div>

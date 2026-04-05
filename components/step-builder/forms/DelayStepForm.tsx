@@ -35,17 +35,17 @@ export function DelayStepForm({ initialConfig, onChange }: DelayStepFormProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="seconds" className="text-sm font-medium text-[#1A202C]">
+        <Label htmlFor="seconds" className="text-sm font-medium text-[#F8FAFC]">
           Tempo de Espera (em Segundos)
         </Label>
         <Input
           id="seconds"
           type="number"
           {...register('seconds')}
-          className="w-full border border-[#E2E8F0] rounded-lg px-4 py-2 text-sm text-[#1A202C] bg-white focus:border-[#2B7FFF]"
+          className="w-full border border-[rgba(59,130,246,0.15)] rounded-lg px-4 py-2 text-sm text-[#F8FAFC] bg-[rgba(15,18,35,0.6)] focus:border-[#3B82F6]"
         />
-        {errors.seconds && <p className="text-xs text-[#E53E3E]">{errors.seconds.message}</p>}
-        <p className="text-xs text-[#718096]">
+        {errors.seconds && <p className="text-xs text-[#EF4444]">{errors.seconds.message}</p>}
+        <p className="text-xs text-[#94A3B8]">
           Exemplo: 60 = 1 minuto / 3600 = 1 hora
         </p>
       </div>

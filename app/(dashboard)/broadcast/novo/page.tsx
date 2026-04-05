@@ -15,7 +15,7 @@ export default async function NewBroadcastPage() {
   if (!accountId) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <p className="text-[#718096]">Nenhuma conta conectada. Configure sua conta Instagram primeiro.</p>
+        <p className="text-[#94A3B8]">Nenhuma conta conectada. Configure sua conta Instagram primeiro.</p>
       </div>
     )
   }

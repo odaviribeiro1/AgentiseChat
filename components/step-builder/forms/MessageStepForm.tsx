@@ -37,17 +37,17 @@ export function MessageStepForm({ initialConfig, onChange }: MessageStepFormProp
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="text" className="text-sm font-medium text-[#1A202C]">
+        <Label htmlFor="text" className="text-sm font-medium text-[#F8FAFC]">
           Texto da Mensagem
         </Label>
         <Textarea
           id="text"
           {...register('text')}
           placeholder="Ex: Olá! {{contact.first_name}}, como posso ajudar?"
-          className="w-full border border-[#E2E8F0] rounded-lg px-4 py-3 text-sm text-[#1A202C] bg-[#F8F9FB] placeholder:text-[#A0AEC0] focus:ring-[#2B7FFF] min-h-[140px] resize-y"
+          className="w-full border border-[rgba(59,130,246,0.15)] rounded-lg px-4 py-3 text-sm text-[#F8FAFC] bg-[#0F1223] placeholder:text-[#64748B] focus:ring-[#3B82F6] min-h-[140px] resize-y"
         />
-        {errors.text && <p className="text-xs text-[#E53E3E]">{errors.text.message}</p>}
-        <p className="text-xs text-[#718096]">
+        {errors.text && <p className="text-xs text-[#EF4444]">{errors.text.message}</p>}
+        <p className="text-xs text-[#94A3B8]">
           Dica: Você pode usar variáveis como {'{{contact.username}}'}.
         </p>
       </div>

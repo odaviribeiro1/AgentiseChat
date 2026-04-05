@@ -68,35 +68,35 @@ export function QuickReplyForm({ initialConfig, onChange, availableSteps = [] }:
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="text" className="text-sm font-medium text-[#1A202C]">
+        <Label htmlFor="text" className="text-sm font-medium text-[#F8FAFC]">
           Mensagem Principal
         </Label>
         <Textarea
           id="text"
           {...register('text')}
           placeholder="Escolha uma das opções abaixo:"
-          className="w-full border border-[#E2E8F0] rounded-lg px-4 py-3 text-sm text-[#1A202C] bg-[#F8F9FB] placeholder:text-[#A0AEC0] focus:ring-[#2B7FFF] min-h-[100px] resize-y"
+          className="w-full border border-[rgba(59,130,246,0.15)] rounded-lg px-4 py-3 text-sm text-[#F8FAFC] bg-[#0F1223] placeholder:text-[#64748B] focus:ring-[#3B82F6] min-h-[100px] resize-y"
         />
-        {errors.text && <p className="text-xs text-[#E53E3E]">{errors.text.message}</p>}
+        {errors.text && <p className="text-xs text-[#EF4444]">{errors.text.message}</p>}
       </div>
 
       <div className="space-y-4">
-        <Label className="text-sm font-medium text-[#1A202C]">Botões de Resposta Rápida</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">Botões de Resposta Rápida</Label>
 
         {fields.map((field, index) => (
-          <div key={field.id} className="border border-[#E2E8F0] rounded-lg p-4 space-y-3 bg-white">
+          <div key={field.id} className="border border-[rgba(59,130,246,0.15)] rounded-lg p-4 space-y-3 bg-[rgba(15,18,35,0.6)]">
             {/* Linha 1: Título + Remover */}
             <div className="flex gap-3 items-start">
               <div className="flex-1 space-y-1">
-                <Label className="text-xs text-[#718096]">Título do Botão</Label>
+                <Label className="text-xs text-[#94A3B8]">Título do Botão</Label>
                 <Input
                   {...register(`buttons.${index}.title` as const)}
                   placeholder="Ex: Sim, quero!"
                   maxLength={20}
-                  className="bg-white border-[#E2E8F0] focus:border-[#2B7FFF]"
+                  className="bg-[rgba(15,18,35,0.6)] border-[rgba(59,130,246,0.15)] focus:border-[#3B82F6]"
                 />
                 {errors?.buttons?.[index]?.title && (
-                  <p className="text-xs text-[#E53E3E]">{errors.buttons[index]?.title?.message}</p>
+                  <p className="text-xs text-[#EF4444]">{errors.buttons[index]?.title?.message}</p>
                 )}
               </div>
 
@@ -106,7 +106,7 @@ export function QuickReplyForm({ initialConfig, onChange, availableSteps = [] }:
               <button
                 type="button"
                 onClick={() => remove(index)}
-                className="p-2.5 mt-5 text-[#E53E3E] hover:bg-[#FFF5F5] rounded-lg transition-colors"
+                className="p-2.5 mt-5 text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)] rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -116,13 +116,13 @@ export function QuickReplyForm({ initialConfig, onChange, availableSteps = [] }:
             <div className="flex gap-3">
               {/* Próximo step */}
               <div className="flex-1 space-y-1">
-                <Label className="text-xs text-[#718096] flex items-center gap-1">
+                <Label className="text-xs text-[#94A3B8] flex items-center gap-1">
                   <ArrowRight className="w-3 h-3" />
                   Próximo Passo
                 </Label>
                 <select
                   {...register(`buttons.${index}.next_step_id` as const)}
-                  className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#1A202C] bg-white focus:ring-[#2B7FFF] focus:border-[#2B7FFF]"
+                  className="w-full border border-[rgba(59,130,246,0.15)] rounded-lg px-3 py-2 text-sm text-[#F8FAFC] bg-[rgba(15,18,35,0.6)] focus:ring-[#3B82F6] focus:border-[#3B82F6]"
                 >
                   <option value="">Nenhum (encerrar fluxo)</option>
                   {availableSteps.map(step => (
@@ -135,14 +135,14 @@ export function QuickReplyForm({ initialConfig, onChange, availableSteps = [] }:
 
               {/* Tag ao clicar */}
               <div className="flex-1 space-y-1">
-                <Label className="text-xs text-[#718096] flex items-center gap-1">
+                <Label className="text-xs text-[#94A3B8] flex items-center gap-1">
                   <Tag className="w-3 h-3" />
                   Tag ao Clicar (opcional)
                 </Label>
                 <Input
                   {...register(`buttons.${index}.apply_tag` as const)}
                   placeholder="Ex: interessado"
-                  className="bg-white border-[#E2E8F0] focus:border-[#2B7FFF]"
+                  className="bg-[rgba(15,18,35,0.6)] border-[rgba(59,130,246,0.15)] focus:border-[#3B82F6]"
                 />
               </div>
             </div>
@@ -150,14 +150,14 @@ export function QuickReplyForm({ initialConfig, onChange, availableSteps = [] }:
         ))}
 
         {errors.buttons && !Array.isArray(errors.buttons) && (
-          <p className="text-xs text-[#E53E3E]">{errors.buttons.message}</p>
+          <p className="text-xs text-[#EF4444]">{errors.buttons.message}</p>
         )}
 
         {fields.length < 3 && (
           <button
             type="button"
             onClick={() => append({ title: '', payload: `PAYLOAD_${fields.length + 1}`, next_step_id: '', apply_tag: '' })}
-            className="flex items-center gap-2 text-sm font-semibold text-[#2B7FFF] bg-[#EBF3FF] hover:bg-[#d6e5fa] px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-[#3B82F6] bg-[rgba(59,130,246,0.12)] hover:bg-[rgba(59,130,246,0.2)] px-4 py-2 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             Adicionar Botão

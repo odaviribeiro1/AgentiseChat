@@ -15,8 +15,8 @@ export default async function DashboardPage() {
   if (!accountId) {
     return (
       <div className="flex h-[80vh] items-center justify-center flex-col">
-        <h1 className="text-2xl font-bold text-[#1A202C] mb-2">Bem-vindo ao Agentise Chat</h1>
-        <p className="text-[#718096]">Comece configurando sua conta Instagram em <a href="/conexao" className="text-[#2B7FFF] font-semibold hover:underline">Conexão</a>.</p>
+        <h1 className="text-2xl font-bold text-[#F8FAFC] mb-2">Bem-vindo ao Agentise Chat</h1>
+        <p className="text-[#94A3B8]">Comece configurando sua conta Instagram em <a href="/conexao" className="text-[#3B82F6] font-semibold hover:underline">Conexão</a>.</p>
       </div>
     )
   }
@@ -129,8 +129,8 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-[#1A202C]">Dashboard</h1>
-        <p className="text-sm text-[#718096] mt-1">Visão geral do desempenho do seu agente de conversão.</p>
+        <h1 className="text-2xl font-bold text-[#F8FAFC]">Dashboard</h1>
+        <p className="text-sm text-[#94A3B8] mt-1">Visão geral do desempenho do seu agente de conversão.</p>
       </div>
 
       {/* Alertas */}
@@ -138,9 +138,9 @@ export default async function DashboardPage() {
         <div className="space-y-2">
           {alerts.map((alert, i) => (
             <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
-              alert.type === 'warning' ? 'bg-[#FFFBEB] text-[#D97706] border border-[#D97706]/20' :
-              alert.type === 'error' ? 'bg-[#FFF5F5] text-[#E53E3E] border border-[#E53E3E]/20' :
-              'bg-[#EBF3FF] text-[#2B7FFF] border border-[#2B7FFF]/20'
+              alert.type === 'warning' ? 'bg-[rgba(245,158,11,0.12)] text-[#F59E0B] border border-[#F59E0B]/20' :
+              alert.type === 'error' ? 'bg-[rgba(239,68,68,0.12)] text-[#EF4444] border border-[#EF4444]/20' :
+              'bg-[rgba(59,130,246,0.12)] text-[#3B82F6] border border-[#3B82F6]/20'
             }`}>
               {alert.type === 'warning' ? <AlertTriangle className="w-4 h-4 shrink-0" /> : <Info className="w-4 h-4 shrink-0" />}
               {alert.message}
@@ -151,67 +151,67 @@ export default async function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 hover:border-[#38A169] transition-colors relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-transparent to-[#DEF7EC] opacity-50 rounded-bl-full pointer-events-none" />
+        <div className="glass-card p-6 hover:border-[#10B981] transition-colors relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-transparent to-[rgba(16,185,129,0.12)] opacity-50 rounded-bl-full pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#718096]">Contatos na Janela</h3>
-            <div className="w-8 h-8 rounded-lg bg-[#DEF7EC] text-[#38A169] flex items-center justify-center relative">
+            <h3 className="text-sm font-semibold text-[#94A3B8]">Contatos na Janela</h3>
+            <div className="w-8 h-8 rounded-lg bg-[rgba(16,185,129,0.12)] text-[#10B981] flex items-center justify-center relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
               <Activity className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-[#1A202C]">{activeWindows ?? 0}</p>
-          <p className="text-xs text-[#38A169] font-medium mt-1">Elegíveis para broadcast</p>
+          <p className="text-3xl font-bold text-[#F8FAFC]">{activeWindows ?? 0}</p>
+          <p className="text-xs text-[#10B981] font-medium mt-1">Elegíveis para broadcast</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 hover:border-[#2B7FFF] transition-colors">
+        <div className="glass-card p-6 hover:border-[#3B82F6] transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#718096]">Automações Ativas</h3>
-            <div className="w-8 h-8 rounded-lg bg-[#EBF3FF] text-[#2B7FFF] flex items-center justify-center">
+            <h3 className="text-sm font-semibold text-[#94A3B8]">Automações Ativas</h3>
+            <div className="w-8 h-8 rounded-lg bg-[rgba(59,130,246,0.12)] text-[#3B82F6] flex items-center justify-center">
               <Zap className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-[#1A202C]">{activeAutomations.length}</p>
-          <p className="text-xs text-[#718096] mt-1">{(totalContacts ?? 0)} leads na base</p>
+          <p className="text-3xl font-bold text-[#F8FAFC]">{activeAutomations.length}</p>
+          <p className="text-xs text-[#94A3B8] mt-1">{(totalContacts ?? 0)} leads na base</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 hover:border-[#805AD5] transition-colors">
+        <div className="glass-card p-6 hover:border-[#60A5FA] transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#718096]">Fluxos Iniciados (7d)</h3>
-            <div className="w-8 h-8 rounded-lg bg-[#FAF5FF] text-[#805AD5] flex items-center justify-center">
+            <h3 className="text-sm font-semibold text-[#94A3B8]">Fluxos Iniciados (7d)</h3>
+            <div className="w-8 h-8 rounded-lg bg-[rgba(96,165,250,0.12)] text-[#60A5FA] flex items-center justify-center">
               <Send className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-[#1A202C]">{runsLast7}</p>
-          <p className="text-xs text-[#718096] mt-1">{totalOutbound ?? 0} DMs enviadas total</p>
+          <p className="text-3xl font-bold text-[#F8FAFC]">{runsLast7}</p>
+          <p className="text-xs text-[#94A3B8] mt-1">{totalOutbound ?? 0} DMs enviadas total</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 hover:border-[#D69E2E] transition-colors">
+        <div className="glass-card p-6 hover:border-[#2563EB] transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#718096]">Broadcasts (30d)</h3>
-            <div className="w-8 h-8 rounded-lg bg-[#FFFAF0] text-[#D69E2E] flex items-center justify-center">
+            <h3 className="text-sm font-semibold text-[#94A3B8]">Broadcasts (30d)</h3>
+            <div className="w-8 h-8 rounded-lg bg-[rgba(37,99,235,0.12)] text-[#2563EB] flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-[#1A202C]">{broadcastsSent ?? 0}</p>
-          <p className="text-xs text-[#718096] mt-1">{completedRuns} automações concluídas</p>
+          <p className="text-3xl font-bold text-[#F8FAFC]">{broadcastsSent ?? 0}</p>
+          <p className="text-xs text-[#94A3B8] mt-1">{completedRuns} automações concluídas</p>
         </div>
       </div>
 
       {/* Gráfico de Interações (7 dias) */}
-      <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6">
-        <h3 className="text-base font-bold text-[#1A202C] mb-4">Interações — Últimos 7 dias</h3>
+      <div className="glass-card p-6">
+        <h3 className="text-base font-bold text-[#F8FAFC] mb-4">Interações — Últimos 7 dias</h3>
         <InteractionsChart data={chartData} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Funil por Automação */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6">
-          <h3 className="text-base font-bold text-[#1A202C] mb-4">Desempenho por Automação</h3>
+        <div className="lg:col-span-2 glass-card p-6">
+          <h3 className="text-base font-bold text-[#F8FAFC] mb-4">Desempenho por Automação</h3>
           {automationFunnel.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[#718096] border-b border-[#E2E8F0]">
+                <tr className="text-left text-[#94A3B8] border-b border-[rgba(59,130,246,0.15)]">
                   <th className="pb-3 font-semibold">Automação</th>
                   <th className="pb-3 font-semibold text-center">Disparos</th>
                   <th className="pb-3 font-semibold text-center">Concluídas</th>
@@ -220,13 +220,13 @@ export default async function DashboardPage() {
               </thead>
               <tbody>
                 {automationFunnel.map(a => (
-                  <tr key={a.name} className="border-b border-[#E2E8F0] last:border-0">
-                    <td className="py-3 font-medium text-[#1A202C]">{a.name}</td>
-                    <td className="py-3 text-center text-[#718096]">{a.runs}</td>
-                    <td className="py-3 text-center text-[#38A169]">{a.completed}</td>
+                  <tr key={a.name} className="border-b border-[rgba(59,130,246,0.15)] last:border-0">
+                    <td className="py-3 font-medium text-[#F8FAFC]">{a.name}</td>
+                    <td className="py-3 text-center text-[#94A3B8]">{a.runs}</td>
+                    <td className="py-3 text-center text-[#10B981]">{a.completed}</td>
                     <td className="py-3 text-right">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        a.rate >= 50 ? 'bg-[#F0FFF4] text-[#38A169]' : a.rate >= 20 ? 'bg-[#FFFBEB] text-[#D97706]' : 'bg-[#FFF5F5] text-[#E53E3E]'
+                        a.rate >= 50 ? 'bg-[rgba(16,185,129,0.12)] text-[#10B981]' : a.rate >= 20 ? 'bg-[rgba(245,158,11,0.12)] text-[#F59E0B]' : 'bg-[rgba(239,68,68,0.12)] text-[#EF4444]'
                       }`}>
                         {a.rate}%
                       </span>
@@ -236,26 +236,26 @@ export default async function DashboardPage() {
               </tbody>
             </table>
           ) : (
-            <p className="text-sm text-[#A0AEC0] text-center py-6">Nenhuma automação com execuções ainda.</p>
+            <p className="text-sm text-[#64748B] text-center py-6">Nenhuma automação com execuções ainda.</p>
           )}
         </div>
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] flex flex-col h-[380px]">
-          <div className="p-4 border-b border-[#E2E8F0]">
-            <h3 className="text-sm font-bold text-[#1A202C]">Atividades Recentes</h3>
+        <div className="glass-card flex flex-col h-[380px]">
+          <div className="p-4 border-b border-[rgba(59,130,246,0.15)]">
+            <h3 className="text-sm font-bold text-[#F8FAFC]">Atividades Recentes</h3>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-5">
             {(!recentRuns || recentRuns.length === 0) ? (
-              <div className="text-sm text-[#A0AEC0] text-center mt-10">Nenhuma atividade recente.</div>
+              <div className="text-sm text-[#64748B] text-center mt-10">Nenhuma atividade recente.</div>
             ) : recentRuns.map((run: any) => (
-              <div key={run.id} className="flex gap-4 items-start pb-5 border-b border-[#E2E8F0] last:border-0 last:pb-0">
-                <div className={`p-2 rounded-full shrink-0 ${run.status === 'completed' ? 'bg-[#DEF7EC] text-[#38A169]' : run.status === 'failed' ? 'bg-[#FFF5F5] text-[#E53E3E]' : 'bg-[#EBF3FF] text-[#2B7FFF]'}`}>
+              <div key={run.id} className="flex gap-4 items-start pb-5 border-b border-[rgba(59,130,246,0.15)] last:border-0 last:pb-0">
+                <div className={`p-2 rounded-full shrink-0 ${run.status === 'completed' ? 'bg-[rgba(16,185,129,0.12)] text-[#10B981]' : run.status === 'failed' ? 'bg-[rgba(239,68,68,0.12)] text-[#EF4444]' : 'bg-[rgba(59,130,246,0.12)] text-[#3B82F6]'}`}>
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="-mt-1">
-                  <p className="text-sm text-[#1A202C] font-semibold leading-tight">{(run.automation as any)?.name}</p>
-                  <p className="text-xs text-[#718096] mt-1">
+                  <p className="text-sm text-[#F8FAFC] font-semibold leading-tight">{(run.automation as any)?.name}</p>
+                  <p className="text-xs text-[#94A3B8] mt-1">
                     {run.status === 'completed' ? 'Concluído' : run.status === 'waiting_reply' ? 'Aguardando resposta' : run.status === 'failed' ? 'Falhou' : run.status}
                     {run.started_at && ` · ${format(new Date(run.started_at), 'dd/MM HH:mm', { locale: ptBR })}`}
                   </p>

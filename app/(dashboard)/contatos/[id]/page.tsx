@@ -45,7 +45,7 @@ export default async function ContactProfilePage({ params }: { params: { id: str
   return (
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/contatos" className="p-2 bg-white border border-[#E2E8F0] rounded-lg text-[#718096] hover:text-[#1A202C] hover:bg-[#F8F9FB] transition-colors">
+        <Link href="/contatos" className="p-2 bg-[rgba(15,18,35,0.6)] border border-[rgba(59,130,246,0.15)] rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#0F1223] transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex items-center gap-3">
@@ -53,12 +53,12 @@ export default async function ContactProfilePage({ params }: { params: { id: str
             // eslint-disable-next-line @next/next/no-img-element
             <img src={contact.profile_pic_url} alt="Avatar" className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-[#EBF3FF] text-[#2B7FFF] flex items-center justify-center font-bold text-lg">
+            <div className="w-12 h-12 rounded-full bg-[rgba(59,130,246,0.12)] text-[#3B82F6] flex items-center justify-center font-bold text-lg">
               <User className="w-6 h-6" />
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-[#1A202C]">@{contact.username}</h1>
+            <h1 className="text-2xl font-bold text-[#F8FAFC]">@{contact.username}</h1>
             <div className="flex items-center gap-2 mt-0.5">
               {inWindow ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#03543F]">
@@ -69,8 +69,8 @@ export default async function ContactProfilePage({ params }: { params: { id: str
                   Janela 24h Ativa
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#718096]">
-                  <span className="h-2 w-2 rounded-full bg-[#CBD5E0]"></span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#94A3B8]">
+                  <span className="h-2 w-2 rounded-full bg-[rgba(59,130,246,0.2)]"></span>
                   Janela Inativa
                 </span>
               )}
@@ -84,8 +84,8 @@ export default async function ContactProfilePage({ params }: { params: { id: str
               type="submit"
               className={`px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border ${
                 contact.is_blocked
-                  ? 'bg-[#FFF5F5] border-[#E53E3E]/20 text-[#E53E3E]'
-                  : 'bg-white border-[#E2E8F0] text-[#718096] hover:bg-[#F8F9FB]'
+                  ? 'bg-[rgba(239,68,68,0.12)] border-[#EF4444]/20 text-[#EF4444]'
+                  : 'bg-[rgba(15,18,35,0.6)] border-[rgba(59,130,246,0.15)] text-[#94A3B8] hover:bg-[#0F1223]'
               }`}
             >
               {contact.is_blocked ? <><CheckCircle2 className="w-4 h-4" /> Desbloquear</> : <><Ban className="w-4 h-4" /> Bloquear</>}
@@ -96,8 +96,8 @@ export default async function ContactProfilePage({ params }: { params: { id: str
               type="submit"
               className={`px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border ${
                 contact.opted_out
-                  ? 'bg-[#FFFBEB] border-[#D97706]/20 text-[#D97706]'
-                  : 'bg-white border-[#E2E8F0] text-[#718096] hover:bg-[#F8F9FB]'
+                  ? 'bg-[rgba(245,158,11,0.12)] border-[#F59E0B]/20 text-[#F59E0B]'
+                  : 'bg-[rgba(15,18,35,0.6)] border-[rgba(59,130,246,0.15)] text-[#94A3B8] hover:bg-[#0F1223]'
               }`}
             >
               {contact.opted_out ? <><ShieldCheck className="w-4 h-4" /> Reativar</> : <><ShieldBan className="w-4 h-4" /> Opt-out</>}
@@ -108,16 +108,16 @@ export default async function ContactProfilePage({ params }: { params: { id: str
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6">
-            <h3 className="text-sm font-bold text-[#1A202C] uppercase tracking-wider mb-4 border-b border-[#E2E8F0] pb-2">Sobre o Lead</h3>
+          <div className="glass-card p-6">
+            <h3 className="text-sm font-bold text-[#F8FAFC] uppercase tracking-wider mb-4 border-b border-[rgba(59,130,246,0.15)] pb-2">Sobre o Lead</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <span className="text-[#A0AEC0] block">Capturado em</span>
-                <span className="text-[#1A202C] font-semibold">{format(new Date(contact.created_at || new Date()), "dd 'de' MMM, yyyy", { locale: ptBR })}</span>
+                <span className="text-[#64748B] block">Capturado em</span>
+                <span className="text-[#F8FAFC] font-semibold">{format(new Date(contact.created_at || new Date()), "dd 'de' MMM, yyyy", { locale: ptBR })}</span>
               </li>
               <li>
-                <span className="text-[#A0AEC0] block">ID Instagram</span>
-                <span className="text-[#1A202C] font-mono text-xs">{contact.instagram_user_id}</span>
+                <span className="text-[#64748B] block">ID Instagram</span>
+                <span className="text-[#F8FAFC] font-mono text-xs">{contact.instagram_user_id}</span>
               </li>
               <li>
                 <TagManager contactId={contact.id} tags={(contact.tags as string[]) ?? []} />
@@ -126,25 +126,25 @@ export default async function ContactProfilePage({ params }: { params: { id: str
           </div>
 
           {/* Histórico de Automações */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6">
-            <h3 className="text-sm font-bold text-[#1A202C] uppercase tracking-wider mb-4 border-b border-[#E2E8F0] pb-2">Automações</h3>
+          <div className="glass-card p-6">
+            <h3 className="text-sm font-bold text-[#F8FAFC] uppercase tracking-wider mb-4 border-b border-[rgba(59,130,246,0.15)] pb-2">Automações</h3>
             {runs && runs.length > 0 ? (
               <ul className="space-y-2">
                 {runs.map((run: any) => (
                   <li key={run.id} className="flex items-center justify-between text-sm">
-                    <span className="text-[#1A202C] font-medium truncate max-w-[140px]">
+                    <span className="text-[#F8FAFC] font-medium truncate max-w-[140px]">
                       {run.automations?.name ?? 'Automação'}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                        run.status === 'completed' ? 'bg-[#F0FFF4] text-[#38A169]' :
-                        run.status === 'failed' ? 'bg-[#FFF5F5] text-[#E53E3E]' :
-                        run.status === 'waiting_reply' ? 'bg-[#FFFBEB] text-[#D97706]' :
-                        'bg-[#F8F9FB] text-[#718096]'
+                        run.status === 'completed' ? 'bg-[rgba(16,185,129,0.12)] text-[#10B981]' :
+                        run.status === 'failed' ? 'bg-[rgba(239,68,68,0.12)] text-[#EF4444]' :
+                        run.status === 'waiting_reply' ? 'bg-[rgba(245,158,11,0.12)] text-[#F59E0B]' :
+                        'bg-[#0F1223] text-[#94A3B8]'
                       }`}>
                         {run.status}
                       </span>
-                      <span className="text-[10px] text-[#A0AEC0]">
+                      <span className="text-[10px] text-[#64748B]">
                         {format(new Date(run.started_at || run.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                       </span>
                     </div>
@@ -152,21 +152,21 @@ export default async function ContactProfilePage({ params }: { params: { id: str
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-[#A0AEC0] italic">Nenhuma automação executada</p>
+              <p className="text-xs text-[#64748B] italic">Nenhuma automação executada</p>
             )}
           </div>
         </div>
 
         <div className="md:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] overflow-hidden flex flex-col h-[600px]">
-            <div className="p-4 border-b border-[#E2E8F0] bg-[#F8F9FB] flex items-center gap-2 text-[#4A5568]">
+          <div className="glass-card overflow-hidden flex flex-col h-[600px]">
+            <div className="p-4 border-b border-[rgba(59,130,246,0.15)] bg-[#0F1223] flex items-center gap-2 text-[#CBD5E1]">
               <Mail className="w-4 h-4" />
               <h3 className="text-sm font-bold">Histórico de Mensagens</h3>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F0F2F5]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0A0A0F]">
               {(!messages || messages.length === 0) ? (
-                <div className="h-full flex items-center justify-center text-sm text-[#A0AEC0]">
+                <div className="h-full flex items-center justify-center text-sm text-[#64748B]">
                   Nenhuma mensagem registrada.
                 </div>
               ) : (
@@ -183,12 +183,12 @@ export default async function ContactProfilePage({ params }: { params: { id: str
                     <div key={msg.id} className={`flex flex-col ${isOutbound ? 'items-end' : 'items-start'}`}>
                       <div className={`max-w-[75%] px-4 py-2 text-sm shadow-sm ${
                         isOutbound 
-                          ? 'bg-[#2B7FFF] text-white rounded-2xl rounded-tr-sm' 
-                          : 'bg-white text-[#1A202C] rounded-2xl rounded-tl-sm border border-[#E2E8F0]'
+                          ? 'bg-[#3B82F6] text-white rounded-2xl rounded-tr-sm' 
+                          : 'bg-[rgba(15,18,35,0.6)] text-[#F8FAFC] rounded-2xl rounded-tl-sm border border-[rgba(59,130,246,0.15)]'
                       }`}>
                         {contentText || <span className="italic text-white/70">[Mensagem Multimídia]</span>}
                       </div>
-                      <span className="text-[10px] text-[#A0AEC0] mt-1 px-1">
+                      <span className="text-[10px] text-[#64748B] mt-1 px-1">
                         {format(new Date(msg.sent_at || Date.now()), "HH:mm", { locale: ptBR })} 
                         {msg.type === 'quick_reply' && ' (Quick Reply)'}
                       </span>
@@ -198,8 +198,8 @@ export default async function ContactProfilePage({ params }: { params: { id: str
               )}
             </div>
             {/* Input Fake just to maintain aesthetic */}
-            <div className="p-3 bg-white border-t border-[#E2E8F0]">
-              <div className="w-full bg-[#F8F9FB] border border-[#E2E8F0] rounded-full px-4 py-2.5 text-sm outline-none text-[#A0AEC0] cursor-not-allowed">
+            <div className="p-3 bg-[rgba(15,18,35,0.6)] border-t border-[rgba(59,130,246,0.15)]">
+              <div className="w-full bg-[#0F1223] border border-[rgba(59,130,246,0.15)] rounded-full px-4 py-2.5 text-sm outline-none text-[#64748B] cursor-not-allowed">
                 Interações limitadas à automação
               </div>
             </div>

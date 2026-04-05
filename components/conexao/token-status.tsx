@@ -35,12 +35,12 @@ export function TokenStatus({ account }: TokenStatusProps) {
   }, [])
 
   function getBadge() {
-    if (validity === 'checking') return { label: 'Verificando...', color: 'text-[#A0AEC0] bg-[#F7FAFC] border-[#E2E8F0]' }
-    if (validity === 'invalid') return { label: 'Token expirado', color: 'text-[#E53E3E] bg-[#FFF5F5] border-[#E53E3E]' }
-    if (daysRemaining === null) return { label: 'Sem data', color: 'text-[#A0AEC0] bg-[#F7FAFC] border-[#E2E8F0]' }
-    if (daysRemaining > 30) return { label: 'Token válido', color: 'text-[#38A169] bg-[#F0FFF4] border-[#38A169]' }
-    if (daysRemaining >= 7) return { label: 'Renovação recomendada', color: 'text-[#D97706] bg-[#FFFBEB] border-[#D97706]' }
-    return { label: 'Token expirando!', color: 'text-[#E53E3E] bg-[#FFF5F5] border-[#E53E3E]' }
+    if (validity === 'checking') return { label: 'Verificando...', color: 'text-[#64748B] bg-[#F7FAFC] border-[rgba(59,130,246,0.15)]' }
+    if (validity === 'invalid') return { label: 'Token expirado', color: 'text-[#EF4444] bg-[rgba(239,68,68,0.12)] border-[#EF4444]' }
+    if (daysRemaining === null) return { label: 'Sem data', color: 'text-[#64748B] bg-[#F7FAFC] border-[rgba(59,130,246,0.15)]' }
+    if (daysRemaining > 30) return { label: 'Token válido', color: 'text-[#10B981] bg-[rgba(16,185,129,0.12)] border-[#10B981]' }
+    if (daysRemaining >= 7) return { label: 'Renovação recomendada', color: 'text-[#F59E0B] bg-[rgba(245,158,11,0.12)] border-[#F59E0B]' }
+    return { label: 'Token expirando!', color: 'text-[#EF4444] bg-[rgba(239,68,68,0.12)] border-[#EF4444]' }
   }
 
   async function handleRefresh() {
@@ -81,17 +81,17 @@ export function TokenStatus({ account }: TokenStatusProps) {
     : loading ? 'Renovando...' : 'Renovar Token'
 
   return (
-    <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
+    <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-[#1A202C]">Token de acesso</h2>
+        <h2 className="text-sm font-semibold text-[#F8FAFC]">Token de acesso</h2>
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-xs font-medium ${badge.color}`}>
           {badge.label}
         </span>
       </div>
 
       {validity === 'invalid' && (
-        <div className="mb-4 p-3 bg-[#FFF5F5] border border-[#FED7D7] rounded-lg">
-          <p className="text-xs text-[#E53E3E] leading-relaxed">
+        <div className="mb-4 p-3 bg-[rgba(239,68,68,0.12)] border border-[#FED7D7] rounded-lg">
+          <p className="text-xs text-[#EF4444] leading-relaxed">
             Sua sessão com o Instagram expirou. Clique em <strong>Reconectar conta</strong> para autorizar o app novamente.
           </p>
         </div>
@@ -99,25 +99,25 @@ export function TokenStatus({ account }: TokenStatusProps) {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <p className="text-xs text-[#A0AEC0] uppercase tracking-wide font-medium mb-0.5">
+          <p className="text-xs text-[#64748B] uppercase tracking-wide font-medium mb-0.5">
             Expira em
           </p>
-          <p className="text-sm font-medium text-[#2D3748]">
+          <p className="text-sm font-medium text-[#CBD5E1]">
             {expiresAt
               ? expiresAt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
               : '—'}
           </p>
         </div>
         <div>
-          <p className="text-xs text-[#A0AEC0] uppercase tracking-wide font-medium mb-0.5">
+          <p className="text-xs text-[#64748B] uppercase tracking-wide font-medium mb-0.5">
             Dias restantes
           </p>
           <p className={`text-sm font-medium ${
-            validity === 'invalid' ? 'text-[#E53E3E]'
-            : daysRemaining === null ? 'text-[#A0AEC0]'
-            : daysRemaining > 30 ? 'text-[#38A169]'
-            : daysRemaining >= 7 ? 'text-[#D97706]'
-            : 'text-[#E53E3E]'
+            validity === 'invalid' ? 'text-[#EF4444]'
+            : daysRemaining === null ? 'text-[#64748B]'
+            : daysRemaining > 30 ? 'text-[#10B981]'
+            : daysRemaining >= 7 ? 'text-[#F59E0B]'
+            : 'text-[#EF4444]'
           }`}>
             {validity === 'invalid' ? 'Expirado' : daysRemaining !== null ? `${daysRemaining} dias` : '—'}
           </p>
@@ -129,8 +129,8 @@ export function TokenStatus({ account }: TokenStatusProps) {
         disabled={loading || validity === 'checking'}
         className={`w-full h-9 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           validity === 'invalid'
-            ? 'border-[#E53E3E] text-white bg-[#E53E3E] hover:bg-[#C53030]'
-            : 'border-[#E2E8F0] text-[#2D3748] hover:bg-[#F7FAFC]'
+            ? 'border-[#EF4444] text-white bg-[#EF4444] hover:bg-[#C53030]'
+            : 'border-[rgba(59,130,246,0.15)] text-[#CBD5E1] hover:bg-[#F7FAFC]'
         }`}
       >
         {buttonLabel}

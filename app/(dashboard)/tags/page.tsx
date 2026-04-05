@@ -22,7 +22,7 @@ export default async function TagsPage() {
   if (!account) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <p className="text-[#718096]">Conecte uma conta Instagram para gerenciar tags.</p>
+        <p className="text-[#94A3B8]">Conecte uma conta Instagram para gerenciar tags.</p>
       </div>
     )
   }
@@ -60,12 +60,12 @@ export default async function TagsPage() {
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#EBF3FF] text-[#2B7FFF] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-[rgba(59,130,246,0.12)] text-[#3B82F6] flex items-center justify-center">
             <Tag className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#1A202C]">Tags</h1>
-            <p className="text-sm text-[#718096] mt-0.5">
+            <h1 className="text-2xl font-bold text-[#F8FAFC]">Tags</h1>
+            <p className="text-sm text-[#94A3B8] mt-0.5">
               {sortedTags.length} tag{sortedTags.length !== 1 ? 's' : ''} em uso
             </p>
           </div>
@@ -74,20 +74,20 @@ export default async function TagsPage() {
       </div>
 
       {sortedTags.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-8 text-center">
-          <Tag className="w-8 h-8 text-[#A0AEC0] mx-auto mb-3" />
-          <p className="text-sm text-[#718096]">Nenhuma tag criada ainda.</p>
-          <p className="text-xs text-[#A0AEC0] mt-1">Crie uma tag ou elas serão criadas automaticamente pelas automações.</p>
+        <div className="glass-card p-8 text-center">
+          <Tag className="w-8 h-8 text-[#64748B] mx-auto mb-3" />
+          <p className="text-sm text-[#94A3B8]">Nenhuma tag criada ainda.</p>
+          <p className="text-xs text-[#64748B] mt-1">Crie uma tag ou elas serão criadas automaticamente pelas automações.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-[#E2E8F0] divide-y divide-[#E2E8F0]">
+        <div className="glass-card divide-y divide-[rgba(59,130,246,0.15)]">
           {sortedTags.map(([tag, count]) => (
             <div key={tag} className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-3">
-                <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#EBF3FF] text-[#2B7FFF] uppercase border border-[#2B7FFF]/20">
+                <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[rgba(59,130,246,0.12)] text-[#3B82F6] uppercase border border-[#3B82F6]/20">
                   {tag}
                 </span>
-                <span className="flex items-center gap-1 text-sm text-[#718096]">
+                <span className="flex items-center gap-1 text-sm text-[#94A3B8]">
                   <Users className="w-3.5 h-3.5" />
                   {count} contato{count !== 1 ? 's' : ''}
                 </span>

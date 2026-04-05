@@ -51,12 +51,12 @@ export function TagStepForm({ initialConfig, onChange }: TagStepFormProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-[#1A202C]">Ação</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">Ação</Label>
         <Select
           value={watch('action')}
           onValueChange={(v) => setValue('action', v as TagStepConfig['action'])}
         >
-          <SelectTrigger className="w-full border-[#E2E8F0] focus:ring-[#2B7FFF]">
+          <SelectTrigger className="w-full border-[rgba(59,130,246,0.15)] focus:ring-[#3B82F6]">
             <SelectValue placeholder="Selecionar ação" />
           </SelectTrigger>
           <SelectContent>
@@ -67,16 +67,16 @@ export function TagStepForm({ initialConfig, onChange }: TagStepFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-[#1A202C]">Nome da tag</Label>
+        <Label className="text-sm font-medium text-[#F8FAFC]">Nome da tag</Label>
         <Input
           {...register('tag')}
           placeholder="Ex: cliente-vip"
-          className="border-[#E2E8F0] focus:ring-[#2B7FFF]"
+          className="border-[rgba(59,130,246,0.15)] focus:ring-[#3B82F6]"
         />
         {errors.tag && (
-          <p className="text-xs text-[#E53E3E]">{errors.tag.message}</p>
+          <p className="text-xs text-[#EF4444]">{errors.tag.message}</p>
         )}
-        <p className="text-xs text-[#718096]">
+        <p className="text-xs text-[#94A3B8]">
           Use apenas letras, números e hífens. Ex: lead-frio, comprou-2024
         </p>
       </div>
