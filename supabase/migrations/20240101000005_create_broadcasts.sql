@@ -1,4 +1,7 @@
-CREATE TABLE broadcasts (
+-- Migration 0005: Cria `broadcasts` (envios em lote com segmentação por tags
+-- e métricas de entrega). O conteúdo da mensagem fica em `message_config`,
+-- e a fila de envio em `lib/queue/broadcast.ts` respeita rate limit Meta.
+CREATE TABLE IF NOT EXISTS broadcasts (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id        uuid NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
   name              text NOT NULL,
@@ -18,6 +21,7 @@ CREATE TABLE broadcasts (
   updated_at        timestamptz DEFAULT now()
 );
 
+DROP TRIGGER IF EXISTS update_broadcasts_updated_at ON broadcasts;
 CREATE TRIGGER update_broadcasts_updated_at
   BEFORE UPDATE ON broadcasts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

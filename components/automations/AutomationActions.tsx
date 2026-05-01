@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { MoreHorizontal, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
 import { toggleAutomationStatus, deleteAutomation, renameAutomation } from '@/app/actions/automations'
 import { toast } from 'sonner'
+import { useUserRole } from '@/lib/supabase/helpers/use-role'
 
 interface AutomationActionsProps {
   id: string
@@ -14,6 +15,8 @@ interface AutomationActionsProps {
 export function AutomationActions({ id, name, status }: AutomationActionsProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const { role } = useUserRole()
+  const isAdmin = role === 'admin'
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -87,14 +90,16 @@ export function AutomationActions({ id, name, status }: AutomationActionsProps) 
             <Pencil className="w-3.5 h-3.5" />
             Renomear
           </button>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="w-full text-left px-3 py-1.5 text-xs font-semibold text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)] flex items-center gap-2 border-t border-[#0F1223]"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Excluir
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="w-full text-left px-3 py-1.5 text-xs font-semibold text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)] flex items-center gap-2 border-t border-[#0F1223]"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Excluir
+            </button>
+          )}
         </div>
       </div>
     </div>

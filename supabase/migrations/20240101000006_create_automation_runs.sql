@@ -1,4 +1,8 @@
-CREATE TABLE automation_runs (
+-- Migration 0006: Cria `automation_runs` (instância de execução de uma
+-- automação para um contato específico). Rastreia o `current_step_id`,
+-- status do fluxo (running, waiting_reply, completed, failed, cancelled)
+-- e o evento Meta que disparou o run.
+CREATE TABLE IF NOT EXISTS automation_runs (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   automation_id     uuid NOT NULL REFERENCES automations(id) ON DELETE CASCADE,
   contact_id        uuid NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
@@ -13,6 +17,7 @@ CREATE TABLE automation_runs (
   updated_at        timestamptz DEFAULT now()
 );
 
+DROP TRIGGER IF EXISTS update_automation_runs_updated_at ON automation_runs;
 CREATE TRIGGER update_automation_runs_updated_at
   BEFORE UPDATE ON automation_runs
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

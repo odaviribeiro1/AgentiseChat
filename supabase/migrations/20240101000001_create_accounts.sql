@@ -1,6 +1,10 @@
+-- Migration 0001: Cria a tabela `accounts` (conta Instagram conectada via OAuth).
+-- Armazena tokens cifrados (AES-256-GCM via lib/crypto/tokens.ts) e metadados
+-- básicos da conta. Inclui função e trigger genéricos de updated_at, que serão
+-- reutilizados por outras tabelas neste pacote de migrations.
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS accounts (
   id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id               uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   instagram_user_id     text UNIQUE NOT NULL,
@@ -23,6 +27,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_accounts_updated_at ON accounts;
 CREATE TRIGGER update_accounts_updated_at
   BEFORE UPDATE ON accounts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

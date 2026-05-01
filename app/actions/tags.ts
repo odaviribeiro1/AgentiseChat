@@ -1,6 +1,7 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/supabase/helpers/role.server'
 import { revalidatePath } from 'next/cache'
 
 /** Cria uma tag no registro da conta (sem atribuir a contatos) */
@@ -24,8 +25,9 @@ export async function createTag(accountId: string, name: string) {
   return { success: true }
 }
 
-/** Remove uma tag de todos os contatos da conta */
+/** Remove uma tag de todos os contatos da conta. Restrito a admin. */
 export async function deleteTag(accountId: string, tag: string) {
+  await requireAdmin()
   const db = createServiceClient()
   const { data: contacts } = await db
     .from('contacts')

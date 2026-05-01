@@ -12,10 +12,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { disconnectInstagram } from '@/app/actions/settings'
+import { useUserRole } from '@/lib/supabase/helpers/use-role'
 
 export function DisconnectInstagram() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { role, loading: roleLoading } = useUserRole()
+  const isAdmin = role === 'admin'
 
   async function handleDisconnect() {
     setLoading(true)
@@ -25,6 +28,17 @@ export function DisconnectInstagram() {
       setLoading(false)
       setOpen(false)
     }
+  }
+
+  if (!roleLoading && !isAdmin) {
+    return (
+      <div className="bg-[rgba(15,18,35,0.6)] rounded-xl border border-[rgba(59,130,246,0.15)] p-6">
+        <h2 className="text-sm font-semibold text-[#F8FAFC] mb-2">Zona de Perigo</h2>
+        <p className="text-sm text-[#94A3B8]">
+          Apenas administradores podem desconectar a conta do Instagram. Solicite a um admin se for necessário.
+        </p>
+      </div>
+    )
   }
 
   return (

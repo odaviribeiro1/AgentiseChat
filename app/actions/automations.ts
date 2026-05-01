@@ -1,15 +1,23 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/supabase/helpers/role.server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 /**
  * Exclui uma automação e todos os seus passos (cascade no banco).
+ * Restrito a admin.
  */
 export async function deleteAutomation(id: string) {
+  try {
+    await requireAdmin()
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'Acesso restrito' }
+  }
+
   const supabase = createServiceClient()
-  
+
   const { error } = await supabase
     .from('automations')
     .delete()

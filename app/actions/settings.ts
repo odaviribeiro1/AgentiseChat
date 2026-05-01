@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/supabase/helpers/role.server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -11,6 +12,7 @@ export async function disconnectInstagram() {
   } = await supabase.auth.getUser()
 
   if (!user) throw new Error('Não autorizado')
+  await requireAdmin()
 
   const serviceClient = createServiceClient()
 
