@@ -7,11 +7,13 @@
 
 ## 🧭 O que é este projeto
 
-**Agentise Chat** é uma plataforma SaaS de automação de Instagram — similar ao ManyChat — desenvolvida pela Agentise (Florianópolis, Brasil). Permite que criadores de conteúdo e PMEs criem automações de DM disparadas por comentários em posts e reels, com construção de fluxos por etapas, broadcast, gestão de contatos e IA integrada.
+**Agentise Chat** é um **boilerplate open-source self-hosted** de automação de Instagram — similar ao ManyChat — distribuído sob licença MIT. Cada fork roda sua própria instância em **Supabase + Vercel**. Permite criar automações de DM disparadas por comentários em posts e reels, com construção de fluxos por etapas, broadcast, gestão de contatos e IA integrada.
 
-**Uso:** interno da Agentise + produto oferecido a clientes  
-**Público:** infoprodutores, criadores de conteúdo, PMEs (clínicas, imobiliárias, etc.)  
-**Mercado:** Brasil — toda a UX é em PT-BR
+**Distribuição:** GitHub público (boilerplate) — não é mais SaaS multi-tenant.
+**Modelo de instância:** 1 fork = 1 cliente Supabase = 1 deploy Vercel.
+**Roles:** 2 níveis — `admin` (primeiro user registrado, via trigger SQL) e `operator` (demais).
+**Público:** infoprodutores, criadores de conteúdo, PMEs (clínicas, imobiliárias, etc.) que queiram self-hostar.
+**Mercado:** Brasil — toda a UX é em PT-BR.
 
 ---
 

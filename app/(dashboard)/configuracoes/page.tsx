@@ -32,7 +32,7 @@ export default async function ConfiguracoesPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-[#F8FAFC]">Configurações</h1>
-          <p className="text-sm text-[#94A3B8] mt-0.5">Gerencie os detalhes da conta do Agentise.</p>
+          <p className="text-sm text-[#94A3B8] mt-0.5">Gerencie a conexão com Instagram e configurações da instância.</p>
         </div>
       </div>
 
