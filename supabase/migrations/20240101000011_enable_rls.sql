@@ -1,3 +1,7 @@
+-- Migration 0011: Habilita Row Level Security em todas as tabelas de domínio.
+-- ALTER TABLE ... ENABLE ROW LEVEL SECURITY é idempotente nativamente, então
+-- esta migration pode ser re-executada com segurança. As policies em si são
+-- criadas em 0012.
 ALTER TABLE accounts          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE automations       ENABLE ROW LEVEL SECURITY;

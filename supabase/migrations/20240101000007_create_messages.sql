@@ -1,4 +1,7 @@
-CREATE TABLE messages (
+-- Migration 0007: Cria `messages` (log unificado de mensagens inbound/outbound).
+-- Base para auditoria, replay e timeline do contato. Liga-se opcionalmente a
+-- `automation_runs`, `broadcasts` e `steps` para rastrear origem do envio.
+CREATE TABLE IF NOT EXISTS messages (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id          uuid NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
   contact_id          uuid NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
