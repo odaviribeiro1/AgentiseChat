@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { renameTag, deleteTag } from '@/app/actions/tags'
+import { useUserRole } from '@/lib/supabase/helpers/use-role'
 
 interface TagActionsProps {
   tag: string
@@ -13,6 +14,8 @@ export function TagActions({ tag, accountId }: TagActionsProps) {
   const [renaming, setRenaming] = useState(false)
   const [newName, setNewName] = useState(tag)
   const [loading, setLoading] = useState(false)
+  const { role } = useUserRole()
+  const isAdmin = role === 'admin'
 
   const handleRename = async () => {
     const trimmed = newName.trim().toLowerCase()
@@ -71,14 +74,16 @@ export function TagActions({ tag, accountId }: TagActionsProps) {
       >
         <Pencil className="w-4 h-4" />
       </button>
-      <button
-        onClick={handleDelete}
-        disabled={loading}
-        className="p-2 text-[#94A3B8] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)] rounded-lg transition-colors disabled:opacity-50"
-        title="Excluir de todos os contatos"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+      {isAdmin && (
+        <button
+          onClick={handleDelete}
+          disabled={loading}
+          className="p-2 text-[#94A3B8] hover:text-[#EF4444] hover:bg-[rgba(239,68,68,0.12)] rounded-lg transition-colors disabled:opacity-50"
+          title="Excluir de todos os contatos"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   )
 }

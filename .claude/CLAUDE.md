@@ -207,6 +207,23 @@ ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 -- contacts, automations, steps, broadcasts, messages: sempre filtrar por account_id
 ```
 
+### Roles 2-níveis (admin + operator)
+
+A migration `015_create_profiles_and_roles.sql` introduz a tabela `user_profiles`
+(1:1 com `auth.users`) com a coluna `role text CHECK (role IN ('admin','operator'))`.
+O **primeiro usuário registrado** vira `admin` automaticamente via trigger
+`on_auth_user_created`; os subsequentes nascem `operator`. Promoção/rebaixamento
+manual via SQL (admin pode UPDATE em qualquer profile).
+
+A tabela usa o nome `user_profiles` (não `profiles`) porque a base Supabase
+compartilhada já tem outra tabela `profiles` (perfis Instagram). Em fork limpo,
+o nome pode ser alterado para `profiles` se preferir.
+
+Policies adicionais `AS RESTRICTIVE FOR DELETE` em `accounts`, `automations` e
+`account_tags` exigem `public.is_admin()`. No frontend, usar `requireAdmin()` de
+`lib/supabase/helpers/role.server.ts` em server actions destrutivas e
+`useUserRole()` em componentes client.
+
 ---
 
 ## 🔌 Meta Graph API

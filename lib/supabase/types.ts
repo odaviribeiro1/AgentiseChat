@@ -10,6 +10,10 @@ export type AutomationRunRow  = Database['public']['Tables']['automation_runs'][
 export type MessageRow        = Database['public']['Tables']['messages']['Row']
 export type WebhookEventRow   = Database['public']['Tables']['webhook_events']['Row']
 export type AiUsageRow        = Database['public']['Tables']['ai_usage']['Row']
+export type ProfileRow        = Database['public']['Tables']['user_profiles']['Row']
+
+// ─── Roles ────────────────────────────────────────────────────────────────────
+export type UserRole          = 'admin' | 'operator'
 
 // ─── Insert types ─────────────────────────────────────────────────────────────
 export type AccountInsert     = Database['public']['Tables']['accounts']['Insert']

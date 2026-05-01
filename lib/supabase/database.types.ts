@@ -1150,6 +1150,24 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          id: string
+          role: string
+          created_at: string | null
+        }
+        Insert: {
+          id: string
+          role?: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          role?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       webhook_events: {
         Row: {
           error: string | null
@@ -1188,6 +1206,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
       match_rag_agentise: {
         Args: { filter?: Json; match_count?: number; query_embedding: string }
         Returns: {
