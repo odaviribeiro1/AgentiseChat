@@ -2,7 +2,20 @@ import OpenAI from 'openai'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { AiModel } from '@/lib/supabase/types'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+let openaiClient: OpenAI | null = null
+
+function getOpenAi(): OpenAI {
+  if (openaiClient) return openaiClient
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error(
+      'OPENAI_API_KEY não configurada. Defina em Vercel → Settings → Environment Variables ' +
+        '(ou em .env.local para desenvolvimento). Obtenha sua chave em https://platform.openai.com/api-keys.'
+    )
+  }
+  openaiClient = new OpenAI({ apiKey })
+  return openaiClient
+}
 
 /**
  * Roda um step de AI com o contexto dado.
@@ -17,6 +30,7 @@ export async function runAiStep(
   const supabase = createServiceClient()
 
   try {
+    const openai = getOpenAi()
     const response = await openai.chat.completions.create({
       model,
       messages: [
