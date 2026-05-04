@@ -36,106 +36,59 @@
 
 ## 🚀 Como rodar (passo a passo)
 
-Este é um boilerplate open source self-hosted. Siga estes **6 passos** para ter sua instância rodando em produção em ~30 minutos. Você não precisa editar uma única linha de código.
+Este projeto é self-hosted. Cada usuário roda sua própria instância em **Supabase + Vercel**. Setup completo em ~15 minutos.
 
-### 1. Crie um projeto no Supabase
+### Caminho recomendado: setup interativo via Claude Code
 
-1. Acesse [supabase.com](https://supabase.com) e crie um novo projeto
-2. Escolha região, defina senha do banco e plano Free
-3. Aguarde o provisionamento (~2 minutos)
-4. Anote, em **Project Settings → API**:
-   - **Project URL** (`https://xxxxx.supabase.co`)
-   - **anon public key**
-   - **service_role key** (mantenha em segredo — bypassa RLS)
+Se você tem [Claude Code](https://claude.com/claude-code) instalado, esse é o caminho mais simples — Claude Code te pergunta cada credencial, valida tudo, aplica as migrations e cria seu admin sozinho.
 
-### 2. Faça fork deste repositório e aplique as migrations
+1. Crie um projeto novo no Supabase em https://supabase.com/dashboard
+2. Faça fork deste repositório no GitHub
+3. Clone seu fork: `git clone https://github.com/<seu-usuario>/agentise-chat.git`
+4. Entre na pasta: `cd agentise-chat`
+5. Abra Claude Code: `claude`
+6. Abra [`BOOTSTRAP.md`](./BOOTSTRAP.md) e cole na sessão o prompt da seção "Prompt para Claude Code"
+7. Responda às perguntas — Claude Code valida cada credencial, cria `.env.local`, aplica as 15 migrations e cria o admin
+8. Ao final, Claude Code te entrega a lista exata de Environment Variables para colar na Vercel
+9. Faça o deploy na Vercel seguindo o checklist do passo 8 e configure o webhook Meta
 
-1. Clique em **Fork** no topo desta página
-2. Aplique as 15 migrations idempotentes da pasta `supabase/migrations/` no seu projeto Supabase. Você tem três caminhos:
-   - **Caminho A — Supabase Dashboard:** abra **SQL Editor** e cole o conteúdo de cada arquivo `.sql` em ordem (do `000001` ao `000015`).
-   - **Caminho B — GitHub Actions (recomendado):** configure no fork (em **Settings → Secrets and variables → Actions**) os secrets `SUPABASE_ACCESS_TOKEN` ([gere aqui](https://supabase.com/dashboard/account/tokens)) e `SUPABASE_PROJECT_REF` (Supabase Dashboard → Project Settings → General). Em seguida vá na aba **Actions → Apply Supabase Migrations → Run workflow**. A partir daqui qualquer push em `supabase/migrations/**` redeploya automaticamente.
-   - **Caminho C — CLI local:** `supabase login && supabase link --project-ref <seu-ref> && supabase db push`.
+Veja [`BOOTSTRAP.md`](./BOOTSTRAP.md) para detalhes e pré-requisitos.
 
-> A migration `000015_create_profiles_and_roles.sql` instala o trigger que promove o **primeiro usuário registrado a admin** automaticamente.
+### Caminho manual (sem Claude Code)
 
-### 3. Configure seu app Meta (Facebook for Developers)
+Se prefere fazer tudo no terminal:
 
-1. Acesse [developers.facebook.com/apps](https://developers.facebook.com/apps) e crie um novo app
-2. Adicione os produtos: **Instagram**, **Facebook Login for Business**, **Webhooks**
-3. Em **Settings → Basic**, anote o **App ID** e **App Secret**
-4. Permissões necessárias para revisão (assessment): `instagram_basic`, `instagram_manage_comments`, `instagram_manage_messages`, `pages_manage_metadata`
-5. Você vai voltar aqui no passo 5 para configurar o webhook após o deploy
+```bash
+git clone https://github.com/<seu-usuario>/agentise-chat.git
+cd agentise-chat
+cp .env.example .env.local
+# edite .env.local preenchendo cada variável (veja comentários no arquivo)
+pnpm install
 
-### 4. Deploy do frontend na Vercel
+# linka este projeto ao seu Supabase e aplica migrations
+npx supabase login
+npx supabase link --project-ref <seu-project-ref>
+npx supabase db push
+```
+
+Depois faça o deploy do frontend na Vercel:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 
-1. Em [vercel.com/new](https://vercel.com/new), importe seu fork
-2. A Vercel detecta Next.js automaticamente (não precisa mudar build/install)
-3. Na tela de configuração, preencha as **Environment Variables** (referência completa em `.env.example`):
+1. Importe seu fork em [vercel.com/new](https://vercel.com/new)
+2. Na tela de Environment Variables, preencha todas as variáveis do seu `.env.local` (omitindo as do grupo "GitHub Actions / Scripts", que são opcionais)
+3. Clique em Deploy
+4. Após o primeiro deploy, volte em Settings → Environment Variables e ajuste `NEXT_PUBLIC_APP_URL`, `META_REDIRECT_URI` e `META_WEBHOOK_URL` com o domínio real, e Redeploye
+5. Configure o webhook no Meta App: Callback URL = `META_WEBHOOK_URL`, Verify Token = `META_VERIFY_TOKEN`, eventos `comments`, `messages`, `messaging_postbacks`
+6. Acesse a URL Vercel e crie sua primeira conta — ela vira **admin** automaticamente via trigger SQL
 
-   **Frontend (Group A — `NEXT_PUBLIC_*`)**
-   - `NEXT_PUBLIC_SUPABASE_URL` — Project URL do passo 1
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon key do passo 1
-   - `NEXT_PUBLIC_APP_URL` — você ainda não tem; deixe em branco e preencha após o primeiro deploy com a URL gerada
+### Valores que você precisa gerar
 
-   **Server-only (Group B)**
-   - `SUPABASE_SERVICE_ROLE_KEY` — service_role do passo 1
-   - `META_APP_ID` — passo 3
-   - `META_APP_SECRET` — passo 3
-   - `META_VERIFY_TOKEN` — gere com `openssl rand -hex 24`
-   - `META_REDIRECT_URI` — preencha após o primeiro deploy: `https://<dominio-vercel>/api/auth/meta/callback`
-   - `META_WEBHOOK_URL` — preencha após o primeiro deploy: `https://<dominio-vercel>/api/webhook/instagram`
-   - `TOKEN_ENCRYPTION_KEY` — gere com `openssl rand -hex 32` (64 chars hex). **Guarde em local seguro** — perder esta chave invalida todos os tokens cifrados no banco
-   - `CRON_SECRET` — gere com `openssl rand -hex 32`
-   - `OPENAI_API_KEY` — obtenha em [platform.openai.com/api-keys](https://platform.openai.com/api-keys) (opcional, só necessário se usar o step de IA)
+- `TOKEN_ENCRYPTION_KEY` → `openssl rand -hex 32` (64 hex chars, idêntica entre local e produção)
+- `CRON_SECRET` → `openssl rand -hex 32`
+- `META_VERIFY_TOKEN` → `openssl rand -hex 24` (token aleatório de sua escolha)
 
-4. Clique em **Deploy** e aguarde (~2 minutos)
-5. Anote a URL gerada (ex: `meu-projeto.vercel.app`) e:
-   - Volte em **Settings → Environment Variables** e preencha `NEXT_PUBLIC_APP_URL`, `META_REDIRECT_URI` e `META_WEBHOOK_URL` com a URL real
-   - Vá em **Deployments → ⋯ → Redeploy** para aplicar as novas variáveis
-6. Os crons declarados em `vercel.json` são habilitados automaticamente — verifique em **Settings → Cron Jobs**
-
-### 5. Configure o webhook no Meta App
-
-De volta ao app no Meta for Developers:
-
-1. Vá em **Webhooks → Instagram**
-2. Configure:
-   - **Callback URL:** o valor de `META_WEBHOOK_URL` (passo 4)
-   - **Verify Token:** o mesmo valor de `META_VERIFY_TOKEN` (passo 4)
-3. Clique em **Verify and Save** — a Meta vai chamar `GET /api/webhook/instagram` no seu deploy e validar o token
-4. Inscreva-se nos eventos: `comments`, `messages`, `messaging_postbacks`
-5. Em **Use Cases → Manage Permissions**, autorize as 4 permissões do passo 3
-
-### 6. Crie sua conta de administrador
-
-1. Acesse a URL gerada pela Vercel
-2. Crie uma conta com email e senha
-3. **O primeiro usuário cadastrado vira admin automaticamente** (via trigger SQL)
-4. Conecte sua conta do Instagram em **Conexão → Conectar Instagram**
-5. Pronto — crie sua primeira automação em **Automações**
-
----
-
-## 🛠️ Modo dev (avançado)
-
-Para desenvolvimento local com hot reload:
-
-```bash
-git clone https://github.com/<seu-usuario>/<seu-fork>.git agentise-chat
-cd agentise-chat
-cp .env.example .env.local      # preencha .env.local com seus valores
-pnpm install
-pnpm dev
-```
-
-Acesse http://localhost:3000.
-
-Pré-requisitos:
-
-- **Node 20+** e **pnpm 9+**
-- (opcional) **Supabase CLI** se for aplicar migrations via CLI: `npm i -g supabase`
+Pré-requisitos do caminho manual: Node 20+, pnpm 9+, Supabase CLI (`npm i -g supabase`).
 
 ## 🧠 Tokens Meta — EAA vs IGAA (importante!)
 

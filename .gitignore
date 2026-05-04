@@ -43,6 +43,9 @@ secrets.json
 credentials.json
 config.local.json
 
+# arquivo local de rotação de credenciais — nunca commitar
+ROTATION_CHECKLIST.md
+
 # Claude Code — versionar briefing, ignorar settings locais
 .claude/settings.local.json
 
