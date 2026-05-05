@@ -64,6 +64,12 @@ docs: update Vercel cron schedule examples
 - **Janela de 24h** verificada antes de qualquer DM proativa (ver `lib/automation/anti-spam.ts`).
 - **Tema fixo** — não introduzir branding dinâmico, white-label ou multi-tenant.
 
+## Customizando sem conflitos
+
+Toda customização que você fizer no seu fork deve ficar em `customizations/`. Esse diretório é "zona livre" — o upstream nunca edita arquivos lá. Garante que `git pull` (após Sync fork) não gere conflito.
+
+Para detalhes, leia [`customizations/README.md`](./customizations/README.md).
+
 ## Distribuição em fork
 
 Se você fez fork e quer rebatizar o produto:

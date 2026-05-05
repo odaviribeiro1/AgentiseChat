@@ -82,6 +82,24 @@ Depois faça o deploy do frontend na Vercel:
 5. Configure o webhook no Meta App: Callback URL = `META_WEBHOOK_URL`, Verify Token = `META_VERIFY_TOKEN`, eventos `comments`, `messages`, `messaging_postbacks`
 6. Acesse a URL Vercel e crie sua primeira conta — ela vira **admin** automaticamente via trigger SQL
 
+## 🔄 Atualizar para a versão mais recente
+
+Quando o upstream tiver atualizações novas:
+
+1. No seu fork no GitHub, clique em **Sync fork** (botão no topo do repo)
+2. No terminal, dentro do projeto: `git pull`
+3. Abra Claude Code: `claude`
+4. Digite: **"Leia o arquivo UPDATE.md e execute tudo"**
+5. Pronto. Migrations novas aplicadas, frontend redeploya sozinho na Vercel.
+
+Veja [`UPDATE.md`](./UPDATE.md) para detalhes.
+
+## 🛠️ Customizando o código
+
+Se você quer fazer customizações no código (não apenas via Configurações da aplicação), faça em [`customizations/`](./customizations/). Esse diretório é "zona livre" — o upstream nunca edita arquivos lá, evitando conflitos quando você atualizar.
+
+Veja [`customizations/README.md`](./customizations/README.md) para detalhes.
+
 ### Valores que você precisa gerar
 
 - `TOKEN_ENCRYPTION_KEY` → `openssl rand -hex 32` (64 hex chars, idêntica entre local e produção)

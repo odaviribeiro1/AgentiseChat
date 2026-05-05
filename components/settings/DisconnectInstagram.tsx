@@ -13,12 +13,13 @@ import {
 } from '@/components/ui/dialog'
 import { disconnectInstagram } from '@/app/actions/settings'
 import { useUserRole } from '@/lib/supabase/helpers/use-role'
+import { isOwnerRole } from '@/lib/supabase/types'
 
 export function DisconnectInstagram() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const { role, loading: roleLoading } = useUserRole()
-  const isAdmin = role === 'admin'
+  const isAdmin = isOwnerRole(role)
 
   async function handleDisconnect() {
     setLoading(true)

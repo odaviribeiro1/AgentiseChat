@@ -5,6 +5,7 @@ import { MoreHorizontal, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
 import { toggleAutomationStatus, deleteAutomation, renameAutomation } from '@/app/actions/automations'
 import { toast } from 'sonner'
 import { useUserRole } from '@/lib/supabase/helpers/use-role'
+import { isOwnerRole } from '@/lib/supabase/types'
 
 interface AutomationActionsProps {
   id: string
@@ -16,7 +17,7 @@ export function AutomationActions({ id, name, status }: AutomationActionsProps) 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const { role } = useUserRole()
-  const isAdmin = role === 'admin'
+  const isAdmin = isOwnerRole(role)
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault()

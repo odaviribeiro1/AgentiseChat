@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import type { UserRole } from '@/lib/supabase/types'
+import { isOwnerRole, type UserRole } from '@/lib/supabase/types'
 
 export async function getUserRole(): Promise<UserRole | null> {
   const supabase = createClient()
@@ -15,5 +15,9 @@ export async function getUserRole(): Promise<UserRole | null> {
     .maybeSingle()
 
   if (!data) return null
-  return (data.role === 'admin' ? 'admin' : 'operator')
+  return data.role as UserRole
+}
+
+export async function isOwner(): Promise<boolean> {
+  return isOwnerRole(await getUserRole())
 }

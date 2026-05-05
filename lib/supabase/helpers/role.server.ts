@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { UserRole } from '@/lib/supabase/types'
+import { isOwnerRole, type UserRole } from '@/lib/supabase/types'
 
 export async function getUserRole(): Promise<UserRole | null> {
   const supabase = await createClient()
@@ -13,12 +13,18 @@ export async function getUserRole(): Promise<UserRole | null> {
     .maybeSingle()
 
   if (!data) return null
-  return (data.role === 'admin' ? 'admin' : 'operator')
+  return data.role as UserRole
 }
 
-export async function requireAdmin(): Promise<void> {
-  const role = await getUserRole()
-  if (role !== 'admin') {
-    throw new Error('Acesso restrito: apenas administradores podem executar esta ação.')
+export async function isOwner(): Promise<boolean> {
+  return isOwnerRole(await getUserRole())
+}
+
+export async function requireOwner(): Promise<void> {
+  if (!(await isOwner())) {
+    throw new Error('Acesso restrito: apenas o owner desta instância pode executar esta ação.')
   }
 }
+
+// Compat: helpers antigos continuam funcionando — owner é tratado como admin.
+export const requireAdmin = requireOwner

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { renameTag, deleteTag } from '@/app/actions/tags'
 import { useUserRole } from '@/lib/supabase/helpers/use-role'
+import { isOwnerRole } from '@/lib/supabase/types'
 
 interface TagActionsProps {
   tag: string
@@ -15,7 +16,7 @@ export function TagActions({ tag, accountId }: TagActionsProps) {
   const [newName, setNewName] = useState(tag)
   const [loading, setLoading] = useState(false)
   const { role } = useUserRole()
-  const isAdmin = role === 'admin'
+  const isAdmin = isOwnerRole(role)
 
   const handleRename = async () => {
     const trimmed = newName.trim().toLowerCase()

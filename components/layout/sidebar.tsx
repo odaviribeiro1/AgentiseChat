@@ -11,10 +11,13 @@ import {
   Settings,
   ChevronLeft,
   LogOut,
+  UserCog,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { useUserRole } from '@/lib/supabase/helpers/use-role'
+import { isOwnerRole } from '@/lib/supabase/types'
 
 const NAV_ITEMS = [
   { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
@@ -22,6 +25,7 @@ const NAV_ITEMS = [
   { href: '/broadcast',     label: 'Broadcast',     icon: Megaphone },
   { href: '/contatos',      label: 'Contatos',      icon: Users },
   { href: '/tags',          label: 'Tags',          icon: Tag },
+  { href: '/equipe',        label: 'Equipe',        icon: UserCog, ownerOnly: true },
   { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
@@ -34,6 +38,8 @@ export function Sidebar({ user }: SidebarProps) {
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
   const supabase = createClient()
+  const { role } = useUserRole()
+  const isOwner = isOwnerRole(role)
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -67,7 +73,7 @@ export function Sidebar({ user }: SidebarProps) {
             Menu
           </p>
         )}
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.filter(item => !item.ownerOnly || isOwner).map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link

@@ -13,7 +13,16 @@ export type AiUsageRow        = Database['public']['Tables']['ai_usage']['Row']
 export type ProfileRow        = Database['public']['Tables']['user_profiles']['Row']
 
 // ─── Roles ────────────────────────────────────────────────────────────────────
-export type UserRole          = 'admin' | 'operator'
+// 'admin'/'operator' são valores legados (pré-migration 0016); 'owner'/'member'
+// são os atuais. Helpers tratam admin↔owner como equivalentes.
+export type UserRole          = 'admin' | 'operator' | 'owner' | 'member'
+
+export const OWNER_ROLES: UserRole[]  = ['admin', 'owner']
+export const MEMBER_ROLES: UserRole[] = ['operator', 'member']
+
+export function isOwnerRole(role: UserRole | null | undefined): boolean {
+  return role === 'admin' || role === 'owner'
+}
 
 // ─── Insert types ─────────────────────────────────────────────────────────────
 export type AccountInsert     = Database['public']['Tables']['accounts']['Insert']

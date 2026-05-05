@@ -34,6 +34,8 @@ export async function middleware(request: NextRequest) {
     '/contatos',
     '/conexao',
     '/configuracoes',
+    '/equipe',
+    '/tags',
   ]
   const isProtected = protectedPaths.some(p =>
     request.nextUrl.pathname.startsWith(p)
