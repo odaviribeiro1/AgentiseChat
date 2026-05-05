@@ -38,21 +38,21 @@
 
 Este projeto é self-hosted. Cada usuário roda sua própria instância em **Supabase + Vercel**. Setup completo em ~15 minutos.
 
-### Caminho recomendado: setup interativo via Claude Code
+### Caminho recomendado: setup automático via Claude Code
 
-Se você tem [Claude Code](https://claude.com/claude-code) instalado, esse é o caminho mais simples — Claude Code te pergunta cada credencial, valida tudo, aplica as migrations e cria seu admin sozinho.
+Se você tem [Claude Code](https://claude.com/claude-code) instalado, esse é o caminho mais simples — Claude Code lê o [`START.md`](./START.md) deste repositório, te pergunta cada credencial, valida tudo, aplica as migrations e cria seu admin sozinho.
 
 1. Crie um projeto novo no Supabase em https://supabase.com/dashboard
 2. Faça fork deste repositório no GitHub
 3. Clone seu fork: `git clone https://github.com/<seu-usuario>/agentise-chat.git`
 4. Entre na pasta: `cd agentise-chat`
 5. Abra Claude Code: `claude`
-6. Abra [`BOOTSTRAP.md`](./BOOTSTRAP.md) e cole na sessão o prompt da seção "Prompt para Claude Code"
+6. Digite na sessão: **"Leia o arquivo START.md e execute tudo"**
 7. Responda às perguntas — Claude Code valida cada credencial, cria `.env.local`, aplica as 15 migrations e cria o admin
 8. Ao final, Claude Code te entrega a lista exata de Environment Variables para colar na Vercel
 9. Faça o deploy na Vercel seguindo o checklist do passo 8 e configure o webhook Meta
 
-Veja [`BOOTSTRAP.md`](./BOOTSTRAP.md) para detalhes e pré-requisitos.
+Veja [`START.md`](./START.md) para a lista de credenciais que você precisa ter em mãos antes de começar.
 
 ### Caminho manual (sem Claude Code)
 
